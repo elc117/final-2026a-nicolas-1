@@ -1,0 +1,28 @@
+# Ignore Gradle files
+.gradle
+build/
+**/build/
+
+# Ignore Kotlin plugin data
+.kotlin
+
+# Ignore possible default compilation files
+out/
+
+# Ignore IDE configuration
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+
+# Ignore local logs
+*.log
+hs_err_pid*
+replay_pid*
+
+# Ignore macOS visual properties
+.DS_Store
