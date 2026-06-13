@@ -25,6 +25,7 @@ dependencies {
     implementation(libs.guava)
 
     implementation("org.postgresql:postgresql:42.7.3")
+
     compileOnly("org.projectlombok:lombok:1.18.30")
     annotationProcessor("org.projectlombok:lombok:1.18.30")
 }
@@ -44,4 +45,7 @@ application {
 tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+
+    // Propriedade para avisar Repository que deve usar o DB de testes
+    systemProperty("environment", "test")
 }

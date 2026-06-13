@@ -28,6 +28,6 @@ public class Ingredient {
     }
 
     public boolean isEstoqueBaixo(){
-        return this.currentAmount < this.currentAmount;
+        return this.currentAmount < this.minimumStock;
     }
 }

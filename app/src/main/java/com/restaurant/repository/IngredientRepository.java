@@ -11,8 +11,8 @@ import java.util.Optional;
 
 public class IngredientRepository {
 
-    public void addIngredient(Ingredient ingredient) {
-        String sql = "INSERT INTO ingredientes (nome, quantidade, unidade_medida, estoque_minimo) VALUES (?, ?, ?, ?)";
+    public void add(Ingredient ingredient) {
+        String sql = "INSERT INTO ingredients (name, current_amount, measurement_unit, minimum_stock) VALUES (?, ?, ?, ?)";
 
         try (Connection conn = ConnectionFactory.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -36,7 +36,7 @@ public class IngredientRepository {
 
 
     public List<Ingredient> searchAll() {
-        String sql = "SELECT * FROM ingredientes";
+        String sql = "SELECT * FROM ingredients";
         List<Ingredient> ingredients = new ArrayList<>();
 
         try (Connection conn = ConnectionFactory.getConnection();
@@ -47,6 +47,7 @@ public class IngredientRepository {
                     Ingredient ing = mapResultSetToIngredient(rs);
                     ingredients.add(ing);
                 }
+                
         } catch (SQLException e){
             throw new RuntimeException("Error in listing ingredients in DB", e);
         }
@@ -55,7 +56,7 @@ public class IngredientRepository {
 
 
     public Optional<Ingredient> searchById(Long id) {
-        String sql = "SELECT * FROM ingredientes WHERE id = ?";
+        String sql = "SELECT * FROM ingredients WHERE id = ?";
 
         try (Connection conn = ConnectionFactory.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)) {
