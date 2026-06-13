@@ -25,7 +25,7 @@ public class IngredientRepository {
             stmt.executeUpdate();
 
             try (ResultSet rs = stmt.getGeneratedKeys()) {
-                if(rs.next()){
+                if(rs.next()) {
                     ingredient.setId((rs.getLong(1)));
                 }
             }
@@ -35,7 +35,7 @@ public class IngredientRepository {
     }
 
 
-    public List<Ingredient> searchAll() {
+    public List<Ingredient> searchIngredients() {
         String sql = "SELECT * FROM ingredients";
         List<Ingredient> ingredients = new ArrayList<>();
 
@@ -55,7 +55,7 @@ public class IngredientRepository {
     }
 
 
-    public Optional<Ingredient> searchById(Long id) {
+    public Optional<Ingredient> searchIngredientById(Long id) {
         String sql = "SELECT * FROM ingredients WHERE id = ?";
 
         try (Connection conn = ConnectionFactory.getConnection();
@@ -112,11 +112,13 @@ public class IngredientRepository {
     // Mapeia ResultSet para um objeto da classe Ingredient - utilizado nas buscas
     private Ingredient mapResultSetToIngredient(ResultSet rs) throws SQLException{
         Ingredient ing = new Ingredient();
+
         ing.setId(rs.getLong("id"));
         ing.setName(rs.getString("name"));
         ing.setCurrentAmount(rs.getDouble("current_amount"));
         ing.setMeasurementUnit(MeasurementUnit.valueOf(rs.getString("measurement_unit")));
         ing.setMinimumStock(rs.getLong("minimum_stock"));
+        
         return ing;
     }
 

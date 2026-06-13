@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class IngredienteTest {
     @Test
     @DisplayName("Erro ao criar ingrediente com construtor AllArgs")
-    void criarIngrediente(){
+    void criarIngredienteTeste(){
         Ingredient tomate = new Ingredient("Tomate", MeasurementUnit.KG, 10.0, 2.0);
         
         assertEquals("Tomate", tomate.getName());
@@ -18,7 +18,7 @@ public class IngredienteTest {
 
     @Test
     @DisplayName("Erro ao identificar estoque baixo")
-    void alertarEstoqueBaixo(){
+    void alertarEstoqueBaixoTeste(){
         Ingredient tomate = new Ingredient("Tomate", MeasurementUnit.KG, 1.0, 2.0);
 
         assertEquals(true, tomate.isEstoqueBaixo());
