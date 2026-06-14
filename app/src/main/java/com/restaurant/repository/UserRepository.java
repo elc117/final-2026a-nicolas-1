@@ -43,10 +43,10 @@ public class UserRepository {
             PreparedStatement stmt = conn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery()) {
 
-                while(rs.next()) {
-                    User someUser = mapResultSetToUser(rs);
-                    users.add(someUser);
-                }
+            while(rs.next()) {
+                User someUser = mapResultSetToUser(rs);
+                users.add(someUser);
+            }
 
         } catch (SQLException e) {
             throw new RuntimeException("Could not retrieve users from DB", e);
@@ -61,12 +61,12 @@ public class UserRepository {
         try (Connection conn = ConnectionFactory.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-                stmt.setLong(1, id);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        return Optional.of(mapResultSetToUser(rs));
-                    }
+            stmt.setLong(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapResultSetToUser(rs));
                 }
+            }
 
         } catch (SQLException e) {
             throw new RuntimeException("Could not retrieve user data from DB", e);
@@ -81,12 +81,12 @@ public class UserRepository {
         try (Connection conn = ConnectionFactory.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-                stmt.setString(1, user.getLogin());
-                stmt.setString(2, user.getPassword());
-                stmt.setString(3, user.getAccessProfile().name());
-                stmt.setLong(4, user.getId());
+            stmt.setString(1, user.getLogin());
+            stmt.setString(2, user.getPassword());
+            stmt.setString(3, user.getAccessProfile().name());
+            stmt.setLong(4, user.getId());
 
-                stmt.executeUpdate();
+            stmt.executeUpdate();
 
         } catch (SQLException e) {
             throw new RuntimeException("Could not update user in DB", e);
@@ -100,8 +100,8 @@ public class UserRepository {
         try (Connection conn = ConnectionFactory.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-                stmt.setLong(1, id);
-                stmt.executeUpdate();
+            stmt.setLong(1, id);
+            stmt.executeUpdate();
 
         } catch (SQLException e) {
             throw new RuntimeException("Could not delete user from DB");

@@ -1,7 +1,6 @@
 package com.restaurant.model;
 
 import com.restaurant.model.enums.Role;
-import com.restaurant.model.User;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,9 +8,9 @@ import lombok.Setter;
 @Setter
 public class Employee {
     private Long id = null;
+    private String cpf;
     private String name;
     private String surname;
-    private String cpf;
     private Role role;
     private User user;
 

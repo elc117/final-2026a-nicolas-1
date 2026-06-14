@@ -43,10 +43,10 @@ public class IngredientRepository {
             PreparedStatement stmt = conn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery();) {
 
-                while(rs.next()) {
-                    Ingredient ing = mapResultSetToIngredient(rs);
-                    ingredients.add(ing);
-                }
+            while(rs.next()) {
+                Ingredient ing = mapResultSetToIngredient(rs);
+                ingredients.add(ing);
+            }
                 
         } catch (SQLException e){
             throw new RuntimeException("Error in listing ingredients in DB", e);
@@ -61,12 +61,12 @@ public class IngredientRepository {
         try (Connection conn = ConnectionFactory.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-                stmt.setLong(1, id);
-                try(ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        return Optional.of(mapResultSetToIngredient(rs));
-                    }
+            stmt.setLong(1, id);
+            try(ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapResultSetToIngredient(rs));
                 }
+            }
 
         } catch (SQLException e) {
             throw new RuntimeException("Error in finding ingredient by ID in DB", e);
@@ -81,13 +81,13 @@ public class IngredientRepository {
         try (Connection conn = ConnectionFactory.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-                stmt.setString(1, ingredient.getName());
-                stmt.setDouble(2, ingredient.getCurrentAmount());
-                stmt.setString(3, ingredient.getMeasurementUnit().name());
-                stmt.setDouble(4, ingredient.getMinimumStock());
-                stmt.setLong(5, ingredient.getId());
+            stmt.setString(1, ingredient.getName());
+            stmt.setDouble(2, ingredient.getCurrentAmount());
+            stmt.setString(3, ingredient.getMeasurementUnit().name());
+            stmt.setDouble(4, ingredient.getMinimumStock());
+            stmt.setLong(5, ingredient.getId());
 
-                stmt.executeUpdate();
+            stmt.executeUpdate();
 
         } catch (SQLException e){
             throw new RuntimeException("Error in updating ingredient in DB");
@@ -101,8 +101,8 @@ public class IngredientRepository {
         try (Connection conn = ConnectionFactory.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-                stmt.setLong(1, id);
-                stmt.executeUpdate();
+            stmt.setLong(1, id);
+            stmt.executeUpdate();
 
         } catch (SQLException e) {
             throw new RuntimeException("Error in deleting ingredient from DB");
