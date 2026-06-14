@@ -28,6 +28,7 @@ public class ConnectionFactory {
         }
     }
 
+
     public static Connection getConnection(){
         try{
             return DriverManager.getConnection(URL, USER, PASSWORD);

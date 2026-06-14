@@ -39,7 +39,7 @@ public class EmployeeRepositoryIT {
         assertNotNull(user.getId(), "User ID should not be NULL");
         assertNotNull(employee.getId(), "Employee ID should not be NULL");
         assertTrue(user.getId() > 0, "User ID should be greater than 0");
-        assertTrue(user.getId() > 0, "Employee ID should be greater than 0");
+        assertTrue(employee.getId() > 0, "Employee ID should be greater than 0");
     }
 
 

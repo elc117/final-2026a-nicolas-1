@@ -13,10 +13,10 @@ import java.util.ArrayList;
 public class EmployeeRepository {
     
     public void add(Employee employee) {
-        String sql = "INSERT INTO employees (cpf, name, surname, role, user) VALUES (?, ?, ?, ?, ?))";
+        String sql = "INSERT INTO employees (cpf, name, surname, role, user_id) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = ConnectionFactory.getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             stmt.setString(1, employee.getCpf());
             stmt.setString(2, employee.getName());
@@ -24,9 +24,9 @@ public class EmployeeRepository {
             stmt.setString(4, employee.getRole().name());
 
             if (employee.getUser() != null && employee.getUser().getId() != null) {
-                stmt.setLong(4, employee.getUser().getId());
+                stmt.setLong(5, employee.getUser().getId());
             } else {
-                stmt.setNull(4, Types.BIGINT);
+                stmt.setNull(5, Types.BIGINT);
             }
 
             stmt.executeUpdate();
@@ -88,7 +88,25 @@ public class EmployeeRepository {
 
 
     public void update(Employee employee) {
-        String sql = "UPDATE employees SET cpf = ?, name = ?, surname = ?, role = ?, user_id = ?";
+        String sql = "UPDATE employees SET cpf = ?, name = ?, surname = ?, role = ?, user_id = ? WHERE id = ?";
+
+        Long userId = null;
+        if (employee.getUser() != null) {
+            userId = employee.getUser().getId();
+
+            if (userId == null) {
+                Optional<Employee> currentEmployee = searchById(employee.getId());
+
+                if (currentEmployee.isPresent() && currentEmployee.get().getUser() != null) {
+                    userId = currentEmployee.get().getUser().getId();
+                    employee.getUser().setId(userId);
+                }
+            }
+
+            if (userId != null) {
+                new UserRepository().update(employee.getUser());
+            }
+        }
 
         try (Connection conn = ConnectionFactory.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -97,7 +115,12 @@ public class EmployeeRepository {
             stmt.setString(2, employee.getName());
             stmt.setString(3, employee.getSurname());
             stmt.setString(4, employee.getRole().name());
-            stmt.setLong(5, employee.getUser().getId());
+            if (userId != null) {
+                stmt.setLong(5, userId);
+            } else {
+                stmt.setNull(5, Types.BIGINT);
+            }
+            stmt.setLong(6, employee.getId());
 
             stmt.executeUpdate();
 
