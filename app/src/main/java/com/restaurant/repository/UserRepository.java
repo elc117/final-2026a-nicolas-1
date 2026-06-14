@@ -35,7 +35,7 @@ public class UserRepository {
     }
 
 
-    public List<User> searchUsers() {
+    public List<User> searchAll() {
         String sql = "SELECT * FROM users";
         List<User> users = new ArrayList<>();
 
@@ -55,7 +55,7 @@ public class UserRepository {
     }
 
 
-    public Optional<User> searchUserById(Long id) {
+    public Optional<User> searchById(Long id) {
         String sql = "SELECT * FROM users WHERE id = ?";
 
         try (Connection conn = ConnectionFactory.getConnection();

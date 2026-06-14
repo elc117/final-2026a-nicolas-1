@@ -27,8 +27,8 @@ public class IngredientRepositoryIT {
 
 
     @Test
-    @DisplayName("Must add an ingredient to DB")
-    void addIngredientTest() {
+    @DisplayName("Add an ingredient to DB")
+    void addTest() {
         Ingredient brocolis = new Ingredient("Brocolis", MeasurementUnit.KG, 5.0, 1.5);
 
         repository.add(brocolis);
@@ -39,14 +39,14 @@ public class IngredientRepositoryIT {
 
 
     @Test
-    @DisplayName("Must find all ingredients in DB")
+    @DisplayName("Retrieve all ingredients data from DB")
     void searchIngredientsTest() {
         Ingredient cebola = new Ingredient("Cebola", MeasurementUnit.UNI, 200.0, 80.0);
         Ingredient tomate = new Ingredient("Tomate", MeasurementUnit.KG, 10.0, 2.0);
 
         repository.add(cebola);
         repository.add(tomate);
-        List<Ingredient> ingredientsFound = repository.searchIngredients();
+        List<Ingredient> ingredientsFound = repository.searchAll();
 
         assertEquals(ingredientsFound.get(0).getId(), cebola.getId());
         assertEquals(ingredientsFound.get(0).getName(), cebola.getName());
@@ -56,12 +56,12 @@ public class IngredientRepositoryIT {
 
 
     @Test
-    @DisplayName("Must find an ingredient by ID in DB")
-    void searchIngredientByIdTest() {
+    @DisplayName("Retrieve an ingredient data from DB by ID")
+    void searchByIdTest() {
         Ingredient alho = new Ingredient("Alho", MeasurementUnit.KG, 5.0, 1.0);
         repository.add(alho);
 
-        Optional<Ingredient> foundOptional = repository.searchIngredientById(alho.getId());
+        Optional<Ingredient> foundOptional = repository.searchById(alho.getId());
 
         assertTrue(foundOptional.isPresent(), "Could not find ingredient by ID in DB");
         Ingredient found = foundOptional.get();
@@ -71,7 +71,7 @@ public class IngredientRepositoryIT {
 
 
     @Test
-    @DisplayName("Must update an ingredient in DB")
+    @DisplayName("Update an ingredient in DB")
     void updateTest() {
         Ingredient leite = new Ingredient("Leite", MeasurementUnit.L, 20.0, 4.0);
         repository.add(leite);
@@ -80,7 +80,7 @@ public class IngredientRepositoryIT {
         leite.setCurrentAmount(18.0);
         repository.update(leite);
 
-        Ingredient updated = repository.searchIngredientById(leite.getId()).get();
+        Ingredient updated = repository.searchById(leite.getId()).get();
         
         assertEquals("Leite Integral", updated.getName());
         assertEquals(18.0, updated.getCurrentAmount());
@@ -88,14 +88,14 @@ public class IngredientRepositoryIT {
 
 
     @Test
-    @DisplayName("Must delete an ingredient from DB")
+    @DisplayName("Delete an ingredient from DB")
     void deleteTest() {
         Ingredient queijo = new Ingredient("Queijo", MeasurementUnit.KG, 6.0, 2.0);
         repository.add(queijo);
 
         repository.delete(queijo.getId());
 
-        Optional<Ingredient> deleted = repository.searchIngredientById(queijo.getId());
+        Optional<Ingredient> deleted = repository.searchById(queijo.getId());
         assertFalse(deleted.isPresent(), "Ingredient still exists in DB after deletion");
     }
 }

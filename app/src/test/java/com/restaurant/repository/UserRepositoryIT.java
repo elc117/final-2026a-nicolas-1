@@ -27,7 +27,7 @@ public class UserRepositoryIT {
 
     @Test
     @DisplayName("Must add an user to DB")
-    void addUserTest() {
+    void addTest() {
         User user = new User("nicolas", "123456", Role.ADMIN);
 
         repository.add(user);
@@ -39,13 +39,13 @@ public class UserRepositoryIT {
 
     @Test
     @DisplayName("Must retrieve all users from DB")
-    void searchUsersTest() {
+    void searchAllTest() {
         User user1 = new User("nicolas", "123456", Role.ADMIN);
         User user2 = new User("davi123", "654321", Role.COOK);
 
         repository.add(user1);
         repository.add(user2);
-        List<User> usersFound = repository.searchUsers();
+        List<User> usersFound = repository.searchAll();
 
         assertEquals(usersFound.get(0).getLogin(), "nicolas");
         assertEquals(usersFound.get(0).getPassword(), "123456");
@@ -58,12 +58,12 @@ public class UserRepositoryIT {
 
     @Test
     @DisplayName("Must retrieve user data by ID from DB")
-    void searchUserByIdTest() {
+    void searchByIdTest() {
         User user = new User("nicolas", "123456", Role.ADMIN);
 
         repository.add(user);
 
-        Optional<User> foundOptional = repository.searchUserById(user.getId());
+        Optional<User> foundOptional = repository.searchById(user.getId());
         
         assertTrue(foundOptional.isPresent(), "Could not find user by ID in DB");
         User found = foundOptional.get();
@@ -96,7 +96,7 @@ public class UserRepositoryIT {
 
         repository.delete(user.getId());
 
-        Optional<User> deleted = repository.searchUserById(user.getId());
+        Optional<User> deleted = repository.searchById(user.getId());
         assertFalse(deleted.isPresent(), "User still exists in DB after deletion");
     }
 }

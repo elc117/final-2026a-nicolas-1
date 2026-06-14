@@ -1,8 +1,8 @@
 package com.restaurant.repository;
 
 import com.restaurant.model.Employee;
+import com.restaurant.model.User;
 import com.restaurant.config.ConnectionFactory;
-import com.restaurant.model.enums.Employment;
 import com.restaurant.model.enums.Role;
 
 import java.sql.*;
@@ -57,6 +57,7 @@ public class EmployeeRepository {
                 Employee someEmployee = mapResultSetToEmployee(rs);
                 employees.add(someEmployee);
             }
+            return employees;
 
         } catch (SQLException e) {
             throw new RuntimeException("Could not retrieve employees data from DB");
@@ -121,14 +122,28 @@ public class EmployeeRepository {
     }
 
 
-    private Employee mapResultSetTEmployee(ResultSet rs) {
+    private Employee mapResultSetToEmployee(ResultSet rs) throws SQLException {
         Employee employee = new Employee();
         
+        employee.setId(rs.getLong("employee_id"));
         employee.setCpf(rs.getString("cpf"));
         employee.setName(rs.getString("name"));
         employee.setSurname(rs.getString("surname"));
         employee.setRole(Role.valueOf(rs.getString("role")));
-        employee.setUser();
+        
+        long userId = rs.getLong("user_id");
 
+        if (!rs.wasNull()) {
+            User user = new User();
+            user.setId(userId);
+            user.setLogin(rs.getString("login"));
+            user.setPassword(rs.getString("password"));
+            user.setAccessProfile(Role.valueOf(rs.getString("access_profile")));
+
+            employee.setUser(user);
+        } else {
+            employee.setUser(null);
+        }
+        return employee;
     }
 }

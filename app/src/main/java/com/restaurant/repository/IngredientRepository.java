@@ -35,7 +35,7 @@ public class IngredientRepository {
     }
 
 
-    public List<Ingredient> searchIngredients() {
+    public List<Ingredient> searchAll() {
         String sql = "SELECT * FROM ingredients";
         List<Ingredient> ingredients = new ArrayList<>();
 
@@ -55,7 +55,7 @@ public class IngredientRepository {
     }
 
 
-    public Optional<Ingredient> searchIngredientById(Long id) {
+    public Optional<Ingredient> searchById(Long id) {
         String sql = "SELECT * FROM ingredients WHERE id = ?";
 
         try (Connection conn = ConnectionFactory.getConnection();
