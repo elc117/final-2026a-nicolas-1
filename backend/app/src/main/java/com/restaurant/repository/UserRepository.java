@@ -75,6 +75,27 @@ public class UserRepository {
     }
 
 
+    public Optional<User> searchByLogin(String login) {
+        String sql = "SELECT * FROM users WHERE login = ?";
+
+        try (Connection conn = ConnectionFactory.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, login);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapResultSetToUser(rs));
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Could not retrieve user data from DB", e);
+        }
+        return Optional.empty();
+    }
+
+    
     public void update(User user) {
         String sql = "UPDATE users SET login = ?, password = ?, access_profile = ? WHERE id = ?";
 
@@ -104,7 +125,7 @@ public class UserRepository {
             stmt.executeUpdate();
 
         } catch (SQLException e) {
-            throw new RuntimeException("Could not delete user from DB");
+            throw new RuntimeException("Could not delete user from DB", e);
         }
     }
 

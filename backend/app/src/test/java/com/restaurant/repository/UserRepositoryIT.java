@@ -74,6 +74,23 @@ public class UserRepositoryIT {
 
 
     @Test
+    @DisplayName("Retrieve user data from DB by login")
+    void searchByLoginTest() {
+        User user = new User("nicolas", "123456", Role.ADMIN);
+
+        repository.add(user);
+
+        Optional<User> foundOptional = repository.searchByLogin(user.getLogin());
+
+        assertTrue(foundOptional.isPresent(), "Could not find user by login in DB");
+        User found = foundOptional.get();
+        assertEquals("nicolas", found.getLogin());
+        assertEquals("123456", found.getPassword());
+        assertEquals(Role.ADMIN, user.getAccessProfile());
+    }
+
+    
+    @Test
     @DisplayName("Must update user data in DB")
     void updateTest() {
         User user = new User("nicolas", "123456", Role.ADMIN);
