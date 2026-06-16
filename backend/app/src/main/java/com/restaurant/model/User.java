@@ -1,6 +1,6 @@
 package com.restaurant.model;
 
-import com.restaurant.model.enums.Role;
+import com.restaurant.model.enums.AccessProfile;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -11,9 +11,9 @@ public class User {
     private Long id = null;
     private String login;
     private String password;
-    private Role accessProfile;
+    private AccessProfile accessProfile;
 
-    public User(String login, String password, Role accessProfile) {
+    public User(String login, String password, AccessProfile accessProfile) {
         this.login = login;
         this.password = password;
         this.accessProfile = accessProfile;
@@ -22,6 +22,6 @@ public class User {
     public User() {
         this.login = null;
         this.password = null;
-        this.accessProfile = null;
+        this.accessProfile = AccessProfile.UNDEFINED;
     }
 }

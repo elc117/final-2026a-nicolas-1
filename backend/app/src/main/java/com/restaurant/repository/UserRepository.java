@@ -1,17 +1,21 @@
 package com.restaurant.repository;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import com.restaurant.config.ConnectionFactory;
 import com.restaurant.model.User;
-import com.restaurant.model.enums.Role;
+import com.restaurant.model.enums.AccessProfile;
 
 public class UserRepository {
     
-    public void add(User user) {
+    public void save(User user) {
         String sql = "INSERT INTO users (login, password, access_profile) VALUES (?, ?, ?)";
 
         try (Connection conn = ConnectionFactory.getConnection();
@@ -132,9 +136,10 @@ public class UserRepository {
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
         User user = new User();
 
+        user.setId(rs.getLong("id"));
         user.setLogin(rs.getString("login"));
         user.setPassword(rs.getString("password"));
-        user.setAccessProfile(Role.valueOf(rs.getString("access_profile")));
+        user.setAccessProfile(AccessProfile.valueOf(rs.getString("access_profile")));
 
         return user;
     }

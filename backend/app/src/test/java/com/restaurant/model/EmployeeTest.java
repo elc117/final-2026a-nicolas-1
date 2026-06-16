@@ -1,16 +1,12 @@
 package com.restaurant.model;
 
-import org.junit.jupiter.api.Test;
-
-import com.restaurant.model.enums.Role;
-
 import org.junit.jupiter.api.DisplayName;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 public class EmployeeTest {
     @Test
-    @DisplayName("Erro ao criar funcionario com construtor AllArgs")
-    void criarFuncionario(){
+    @DisplayName("Create employee object")
+    void createEmployee(){
         // Employee func1 = new Employee("Marcelo", "Moraes", "12345678910", Role.COOK);
 
         // assertEquals(1, func1.getId());

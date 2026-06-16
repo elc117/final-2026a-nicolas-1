@@ -1,129 +1,122 @@
 package com.restaurant.repository;
 
-import com.restaurant.model.enums.Role;
-import com.restaurant.config.ConnectionFactory;
-import com.restaurant.model.Employee;
-import com.restaurant.model.User;
+import static com.restaurant.asserts.EmployeeAsserts.assertEqualEmployees;
+import static com.restaurant.asserts.EmployeeAsserts.assertValidId;
+import static com.restaurant.asserts.UserAsserts.assertValidId;
+import static com.restaurant.fixtures.EmployeeFixtures.createTestEmployee;
+import static com.restaurant.fixtures.EmployeeFixtures.createTestEmployees;
+import static com.restaurant.fixtures.UserFixtures.createTestUser;
+import static com.restaurant.fixtures.UserFixtures.createTestUsers;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.sql.Connection;
-import java.sql.Statement;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-public class EmployeeRepositoryIT {
+import com.restaurant.config.BaseIntegrationTest;
+import com.restaurant.model.Employee;
+import com.restaurant.model.User;
+import com.restaurant.model.enums.Role;
+
+public class EmployeeRepositoryIT extends BaseIntegrationTest{
     private final EmployeeRepository employeeRepository = new EmployeeRepository();
     private final UserRepository userRepository = new UserRepository();
-
-    @BeforeEach
-    @AfterEach
-    void clearDB() throws Exception{
-        try (Connection conn = ConnectionFactory.getConnection();
-            Statement stmt = conn.createStatement()) {
-            
-            stmt.executeUpdate("TRUNCATE TABLE employees, users RESTART IDENTITY");
-        }
-    }
 
     @Test
     @DisplayName("Add an employee to DB")
     void addTest() {
-        User user = new User("nicolas", "123456", Role.ADMIN);
-        Employee employee = new Employee("Nicolas", "Atkinson", "12345678910", Role.ADMIN, user);
+        User testUser = createTestUser();
+        Employee testEmployee = createTestEmployee();
 
-        userRepository.add(user);
-        employeeRepository.add(employee);
+        userRepository.save(testUser);
+        employeeRepository.save(testEmployee);
 
-        assertNotNull(user.getId(), "User ID should not be NULL");
-        assertNotNull(employee.getId(), "Employee ID should not be NULL");
-        assertTrue(user.getId() > 0, "User ID should be greater than 0");
-        assertTrue(employee.getId() > 0, "Employee ID should be greater than 0");
+        assertValidId(testUser);
+        assertValidId(testEmployee);
     }
 
 
     @Test
-    @DisplayName("Retrieve all employees data from DB")
+    @DisplayName("Retrieve all employees' data from DB")
     void searchAllTest() {
-        User user1 = new User("nicolas", "123456", Role.ADMIN);
-        Employee employee1 = new Employee("Nicolas", "Atkinson", "12345678910", Role.ADMIN, user1);
+        List<User> testUsers = createTestUsers();
+        List<Employee> testEmployees = createTestEmployees();
 
-        User user2 = new User("davi123", "654321", Role.COOK);
-        Employee employee2 = new Employee("Davi", "Libardoni", "01987654321", Role.COOK, user2);
-
-        userRepository.add(user1);
-        userRepository.add(user2);
-        employeeRepository.add(employee1);
-        employeeRepository.add(employee2);
+        userRepository.save(testUsers.get(0));
+        userRepository.save(testUsers.get(1));
+       
+        testEmployees.get(0).setUser(testUsers.get(0));
+        testEmployees.get(1).setUser(testUsers.get(1));
+        
+        employeeRepository.save(testEmployees.get(0));
+        employeeRepository.save(testEmployees.get(1));
 
         List<Employee> employeesFound = employeeRepository.searchAll();
 
-        assertEquals(employeesFound.get(0).getId(), employee1.getId());
-        assertEquals(employeesFound.get(0).getName(), employee1.getName());
-        assertEquals(employeesFound.get(0).getUser().getId(), employee1.getUser().getId());
-        assertEquals(employeesFound.get(1).getId(), employee2.getId());
-        assertEquals(employeesFound.get(1).getName(), employee2.getName());
-        assertEquals(employeesFound.get(1).getUser().getId(), employee2.getUser().getId());
+        assertEqualEmployees(testEmployees.get(0), employeesFound.get(0));
+        assertEqualEmployees(testEmployees.get(1), employeesFound.get(1));
     }
 
 
     @Test
-    @DisplayName("Retrieve employee data from DB by ID")
+    @DisplayName("Retrieve an employee's data from DB by ID")
     void searchByIdTest() {
-        User user = new User("nicolas", "123456", Role.ADMIN);
-        Employee employee = new Employee("Nicolas", "Atkinson", "12345678910", Role.ADMIN, user);
+        User testUser = createTestUser();
+        Employee testEmployee = createTestEmployee();
 
-        userRepository.add(user);
-        employeeRepository.add(employee);
+        userRepository.save(testUser);
+       
+        testEmployee.setUser(testUser);
+        
+        employeeRepository.save(testEmployee);
 
-        Optional<Employee> foundOptional = employeeRepository.searchById(employee.getId());
+        Optional<Employee> foundOptional = employeeRepository.searchById(testEmployee.getId());
 
         assertTrue(foundOptional.isPresent(), "Could not find employee in DB");
         Employee found = foundOptional.get();
-        assertEquals("Nicolas", found.getName());
-        assertEquals(Role.ADMIN, found.getRole());
-        assertEquals("12345678910", found.getCpf());
-        assertEquals("nicolas", found.getUser().getLogin());
-        assertEquals(Role.ADMIN, found.getUser().getAccessProfile());
+        assertEqualEmployees(testEmployee, found);
     }
 
 
     @Test
-    @DisplayName("Update an employee ind DB")
+    @DisplayName("Update an employee's data in DB")
     void updateTest() {
-        User user = new User("nicolas", "123456", Role.ADMIN);
-        Employee employee = new Employee("Nicolas", "Atkinson", "12345678910", Role.ADMIN, user);
+        User testUser = createTestUser();
+        Employee testEmployee = createTestEmployee();
 
-        userRepository.add(user);
-        employeeRepository.add(employee);
+        userRepository.save(testUser);
+        employeeRepository.save(testEmployee);
 
-        User newUser = new User("nicolas", "654321", Role.ADMIN);
-        employee.setUser(newUser);
-        employee.setSurname("Stroher");
-        employee.setRole(Role.WAITER);
-        employeeRepository.update(employee);
+        User newUser = createTestUsers().get(1);
+        userRepository.save(newUser);
 
-        Employee updated = employeeRepository.searchById(employee.getId()).get();
+        testEmployee.setUser(newUser);
+        testEmployee.setSurname("Stroher");
+        testEmployee.setRole(Role.WAITER);
 
-        assertEquals("654321", updated.getUser().getPassword());
-        assertEquals("Stroher", updated.getSurname());
-        assertEquals(Role.WAITER, updated.getRole());
+        employeeRepository.update(testEmployee);
+
+        Employee updated = employeeRepository.searchById(testEmployee.getId()).get();
+
+        assertEqualEmployees(testEmployee, updated);
     }
 
 
     @Test
     @DisplayName("Delete an employee from DB")
     void deleteTest() {
-        User user = new User("nicolas", "123456", Role.ADMIN);
-        Employee employee = new Employee("Nicolas", "Atkinson", "12345678910", Role.ADMIN, user);
+        User testUser = createTestUser();
+        Employee testEmployee = createTestEmployee();
 
-        userRepository.add(user);
-        employeeRepository.add(employee);
+        userRepository.save(testUser);
+        employeeRepository.save(testEmployee);
 
-        employeeRepository.delete(employee.getId());
+        employeeRepository.delete(testEmployee.getId());
 
-        Optional<Employee> deleted = employeeRepository.searchById(employee.getId());
+        Optional<Employee> deleted = employeeRepository.searchById(testEmployee.getId());
         assertFalse(deleted.isPresent(), "Employee still exists in DB");
     }
 }

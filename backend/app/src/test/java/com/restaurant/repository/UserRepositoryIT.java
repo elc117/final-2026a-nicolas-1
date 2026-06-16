@@ -1,119 +1,107 @@
 package com.restaurant.repository;
 
-import com.restaurant.config.ConnectionFactory;
-import com.restaurant.model.User;
-import com.restaurant.model.enums.Role;
+import static com.restaurant.asserts.UserAsserts.assertEqualUsers;
+import static com.restaurant.asserts.UserAsserts.assertValidId;
+import static com.restaurant.fixtures.UserFixtures.createTestUser;
+import static com.restaurant.fixtures.UserFixtures.createTestUsers;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.sql.Connection;
-import java.sql.Statement;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-public class UserRepositoryIT {
+import com.restaurant.config.BaseIntegrationTest;
+import com.restaurant.model.User;
+import com.restaurant.model.enums.AccessProfile;
+
+public class UserRepositoryIT extends BaseIntegrationTest{
     private final UserRepository repository = new UserRepository();
 
-    @BeforeEach
-    @AfterEach
-    void clearDB() throws Exception {
-        try (Connection conn = ConnectionFactory.getConnection();
-            Statement stmt = conn.createStatement()) {
-                stmt.executeUpdate("TRUNCATE TABLE employees, users RESTART IDENTITY");
-            }
-    }
-
-
     @Test
-    @DisplayName("Must add an user to DB")
+    @DisplayName("Add an user to DB")
     void addTest() {
-        User user = new User("nicolas", "123456", Role.ADMIN);
+        User testUser = createTestUser();
 
-        repository.add(user);
+        repository.save(testUser);
 
-        assertNotNull(user.getId(), "User ID should not be null");
-        assertTrue(user.getId() > 0, "User ID should be greater than 0");
+        assertValidId(testUser);
     }
 
 
     @Test
-    @DisplayName("Must retrieve all users from DB")
+    @DisplayName("Retrieve all users' data from DB")
     void searchAllTest() {
-        User user1 = new User("nicolas", "123456", Role.ADMIN);
-        User user2 = new User("davi123", "654321", Role.COOK);
+        List<User> testUsers = createTestUsers();
 
-        repository.add(user1);
-        repository.add(user2);
+        repository.save(testUsers.get(0));
+        repository.save(testUsers.get(1));
+
         List<User> usersFound = repository.searchAll();
 
-        assertEquals(usersFound.get(0).getLogin(), "nicolas");
-        assertEquals(usersFound.get(0).getPassword(), "123456");
-        assertEquals(usersFound.get(0).getAccessProfile(), Role.ADMIN);
-        assertEquals(usersFound.get(1).getLogin(), "davi123");
-        assertEquals(usersFound.get(1).getPassword(), "654321");
-        assertEquals(usersFound.get(1).getAccessProfile(), Role.COOK);
+        assertEqualUsers(testUsers.get(0), usersFound.get(0));
+        assertEqualUsers(testUsers.get(1), usersFound.get(1));
     }
 
 
     @Test
-    @DisplayName("Must retrieve user data by ID from DB")
+    @DisplayName("Retrieve an user's data from DB by ID")
     void searchByIdTest() {
-        User user = new User("nicolas", "123456", Role.ADMIN);
+        User testUser = createTestUser();
 
-        repository.add(user);
+        repository.save(testUser);
 
-        Optional<User> foundOptional = repository.searchById(user.getId());
+        Optional<User> foundOptional = repository.searchById(testUser.getId());
         
         assertTrue(foundOptional.isPresent(), "Could not find user by ID in DB");
         User found = foundOptional.get();
-        assertEquals("nicolas", found.getLogin());
-        assertEquals("123456", found.getPassword());
-        assertEquals(Role.ADMIN, user.getAccessProfile());
+        assertEqualUsers(testUser, found);
     }
 
 
     @Test
-    @DisplayName("Retrieve user data from DB by login")
+    @DisplayName("Retrieve an user's data from DB by login")
     void searchByLoginTest() {
-        User user = new User("nicolas", "123456", Role.ADMIN);
+        User testUser = createTestUser();
 
-        repository.add(user);
+        repository.save(testUser);
 
-        Optional<User> foundOptional = repository.searchByLogin(user.getLogin());
+        Optional<User> foundOptional = repository.searchByLogin(testUser.getLogin());
 
         assertTrue(foundOptional.isPresent(), "Could not find user by login in DB");
         User found = foundOptional.get();
-        assertEquals("nicolas", found.getLogin());
-        assertEquals("123456", found.getPassword());
-        assertEquals(Role.ADMIN, user.getAccessProfile());
+        assertEqualUsers(testUser, found);
     }
 
     
     @Test
-    @DisplayName("Must update user data in DB")
+    @DisplayName("Update an user's data in DB")
     void updateTest() {
-        User user = new User("nicolas", "123456", Role.ADMIN);
-        repository.add(user);
+        User testUser = createTestUser();
 
-        user.setLogin("nicolas123");
-        user.setAccessProfile(Role.CHEF);
-        repository.update(user);
+        repository.save(testUser);
 
-        assertEquals("nicolas123", user.getLogin());
-        assertEquals(Role.CHEF, user.getAccessProfile());
+        testUser.setLogin("nicolas123");
+        testUser.setAccessProfile(AccessProfile.CHEF);
+
+        repository.update(testUser);
+        User updated = repository.searchById(testUser.getId()).get();
+
+        assertEqualUsers(testUser, updated);
     }
 
 
     @Test
-    @DisplayName("Must delete user data in DB")
+    @DisplayName("Delete an user's data in DB")
     void deleteTest() {
-        User user = new User("nicolas", "123456", Role.ADMIN);
-        repository.add(user);
+        User testUser = createTestUser();
 
-        repository.delete(user.getId());
+        repository.save(testUser);
+        repository.delete(testUser.getId());
 
-        Optional<User> deleted = repository.searchById(user.getId());
+        Optional<User> deleted = repository.searchById(testUser.getId());
         assertFalse(deleted.isPresent(), "User still exists in DB after deletion");
     }
 }

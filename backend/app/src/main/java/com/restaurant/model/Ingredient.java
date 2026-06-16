@@ -1,6 +1,7 @@
 package com.restaurant.model;
 
 import com.restaurant.model.enums.MeasurementUnit;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -27,7 +28,7 @@ public class Ingredient {
         this.minimumStock = 0.0;
     }
 
-    public boolean isEstoqueBaixo(){
+    public boolean isStockLow(){
         return this.currentAmount < this.minimumStock;
     }
 }

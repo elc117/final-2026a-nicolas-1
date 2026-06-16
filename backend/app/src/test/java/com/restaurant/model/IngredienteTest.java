@@ -1,26 +1,28 @@
 package com.restaurant.model;
 
-import com.restaurant.model.enums.MeasurementUnit;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.DisplayName;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+
+import com.restaurant.model.enums.MeasurementUnit;
 
 public class IngredienteTest {
     @Test
-    @DisplayName("Erro ao criar ingrediente com construtor AllArgs")
-    void criarIngredienteTeste(){
+    @DisplayName("Create ingredient object")
+    void createIngredientTest(){
         Ingredient tomate = new Ingredient("Tomate", MeasurementUnit.KG, 10.0, 2.0);
         
         assertEquals("Tomate", tomate.getName());
         assertEquals(MeasurementUnit.KG, tomate.getMeasurementUnit());
-        assertEquals(false, tomate.isEstoqueBaixo());
+        assertEquals(false, tomate.isStockLow());
     }
 
     @Test
-    @DisplayName("Erro ao identificar estoque baixo")
-    void alertarEstoqueBaixoTeste(){
+    @DisplayName("Identify low stock")
+    void isStockLow(){
         Ingredient tomate = new Ingredient("Tomate", MeasurementUnit.KG, 1.0, 2.0);
 
-        assertEquals(true, tomate.isEstoqueBaixo());
+        assertEquals(true, tomate.isStockLow());
     }
 }

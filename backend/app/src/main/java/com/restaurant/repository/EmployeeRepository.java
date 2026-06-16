@@ -1,18 +1,24 @@
 package com.restaurant.repository;
 
-import com.restaurant.model.Employee;
-import com.restaurant.model.User;
-import com.restaurant.config.ConnectionFactory;
-import com.restaurant.model.enums.Role;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Types;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.ArrayList;
+
+import com.restaurant.config.ConnectionFactory;
+import com.restaurant.model.Employee;
+import com.restaurant.model.User;
+import com.restaurant.model.enums.AccessProfile;
+import com.restaurant.model.enums.Role;
 
 public class EmployeeRepository {
     
-    public void add(Employee employee) {
+    public void save(Employee employee) {
         String sql = "INSERT INTO employees (cpf, name, surname, role, user_id) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = ConnectionFactory.getConnection();
@@ -161,7 +167,7 @@ public class EmployeeRepository {
             user.setId(userId);
             user.setLogin(rs.getString("login"));
             user.setPassword(rs.getString("password"));
-            user.setAccessProfile(Role.valueOf(rs.getString("access_profile")));
+            user.setAccessProfile(AccessProfile.valueOf(rs.getString("access_profile")));
 
             employee.setUser(user);
         } else {

@@ -1,101 +1,92 @@
 package com.restaurant.repository;
 
-import com.restaurant.model.enums.MeasurementUnit;
-import com.restaurant.config.ConnectionFactory;
-import com.restaurant.model.Ingredient;
+import static com.restaurant.asserts.IngredientAsserts.assertEqualIngredients;
+import static com.restaurant.asserts.IngredientAsserts.assertValidId;
+import static com.restaurant.fixtures.IngredientFixtures.createTestIngredient;
+import static com.restaurant.fixtures.IngredientFixtures.createTestIngredients;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.sql.Connection;
-import java.sql.Statement;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-public class IngredientRepositoryIT {
+import com.restaurant.config.BaseIntegrationTest;
+import com.restaurant.model.Ingredient;
+
+public class IngredientRepositoryIT extends BaseIntegrationTest{
     private final IngredientRepository repository = new IngredientRepository();
-
-    @BeforeEach
-    @AfterEach
-    void clearDB() throws Exception {
-        try (Connection conn = ConnectionFactory.getConnection();
-            Statement stmt = conn.createStatement()) {
-
-            stmt.executeUpdate("TRUNCATE TABLE ingredients RESTART IDENTITY");
-        }
-    }
-
 
     @Test
     @DisplayName("Add an ingredient to DB")
     void addTest() {
-        Ingredient brocolis = new Ingredient("Brocolis", MeasurementUnit.KG, 5.0, 1.5);
+        Ingredient testIngredient = createTestIngredient();
 
-        repository.add(brocolis);
+        repository.save(testIngredient);
 
-        assertNotNull(brocolis.getId(), "Ingredient ID should not be NULL");
-        assertTrue(brocolis.getId() > 0, "Generated ID must be greater than 0");
+        assertValidId(testIngredient);
     }
 
 
     @Test
-    @DisplayName("Retrieve all ingredients data from DB")
+    @DisplayName("Retrieve all ingredients' data from DB")
     void searchIngredientsTest() {
-        Ingredient cebola = new Ingredient("Cebola", MeasurementUnit.UNI, 200.0, 80.0);
-        Ingredient tomate = new Ingredient("Tomate", MeasurementUnit.KG, 10.0, 2.0);
+        List<Ingredient> testIngredients = createTestIngredients();
 
-        repository.add(cebola);
-        repository.add(tomate);
+        repository.save(testIngredients.get(0));
+        repository.save(testIngredients.get(1));
+
         List<Ingredient> ingredientsFound = repository.searchAll();
 
-        assertEquals(ingredientsFound.get(0).getId(), cebola.getId());
-        assertEquals(ingredientsFound.get(0).getName(), cebola.getName());
-        assertEquals(ingredientsFound.get(1).getId(), tomate.getId());
-        assertEquals(ingredientsFound.get(1).getCurrentAmount(), tomate.getCurrentAmount());
+        assertEqualIngredients(testIngredients.get(0), ingredientsFound.get(0));
+        assertEqualIngredients(testIngredients.get(1), ingredientsFound.get(1));
     }
 
 
     @Test
-    @DisplayName("Retrieve an ingredient data from DB by ID")
+    @DisplayName("Retrieve an ingredient's data from DB by ID")
     void searchByIdTest() {
-        Ingredient alho = new Ingredient("Alho", MeasurementUnit.KG, 5.0, 1.0);
-        repository.add(alho);
+        Ingredient testIngredient = createTestIngredient();
+        
+        repository.save(testIngredient);
 
-        Optional<Ingredient> foundOptional = repository.searchById(alho.getId());
+        Optional<Ingredient> foundOptional = repository.searchById(testIngredient.getId());
 
         assertTrue(foundOptional.isPresent(), "Could not find ingredient by ID in DB");
         Ingredient found = foundOptional.get();
-        assertEquals("Alho", found.getName());
-        assertEquals(MeasurementUnit.KG, found.getMeasurementUnit());
+        assertEqualIngredients(testIngredient, found);
     }
 
 
     @Test
     @DisplayName("Update an ingredient in DB")
     void updateTest() {
-        Ingredient leite = new Ingredient("Leite", MeasurementUnit.L, 20.0, 4.0);
-        repository.add(leite);
-
-        leite.setName("Leite Integral");
-        leite.setCurrentAmount(18.0);
-        repository.update(leite);
-
-        Ingredient updated = repository.searchById(leite.getId()).get();
+        Ingredient testIngredient = createTestIngredient();
         
-        assertEquals("Leite Integral", updated.getName());
-        assertEquals(18.0, updated.getCurrentAmount());
+        repository.save(testIngredient);
+
+        testIngredient.setName("Leite Integral");
+        testIngredient.setCurrentAmount(18.0);
+        
+        repository.update(testIngredient);
+
+        Ingredient updated = repository.searchById(testIngredient.getId()).get();
+        
+        assertEqualIngredients(testIngredient, updated);
     }
 
 
     @Test
     @DisplayName("Delete an ingredient from DB")
     void deleteTest() {
-        Ingredient queijo = new Ingredient("Queijo", MeasurementUnit.KG, 6.0, 2.0);
-        repository.add(queijo);
+        Ingredient testIngredient = createTestIngredient();
+        
+        repository.save(testIngredient);
+        repository.delete(testIngredient.getId());
 
-        repository.delete(queijo.getId());
-
-        Optional<Ingredient> deleted = repository.searchById(queijo.getId());
+        Optional<Ingredient> deleted = repository.searchById(testIngredient.getId());
         assertFalse(deleted.isPresent(), "Ingredient still exists in DB after deletion");
     }
 }

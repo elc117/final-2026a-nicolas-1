@@ -1,17 +1,21 @@
 package com.restaurant.repository;
 
-import com.restaurant.config.ConnectionFactory;
-import com.restaurant.model.Ingredient;
-import com.restaurant.model.enums.MeasurementUnit;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.restaurant.config.ConnectionFactory;
+import com.restaurant.model.Ingredient;
+import com.restaurant.model.enums.MeasurementUnit;
+
 public class IngredientRepository {
 
-    public void add(Ingredient ingredient) {
+    public void save(Ingredient ingredient) {
         String sql = "INSERT INTO ingredients (name, current_amount, measurement_unit, minimum_stock) VALUES (?, ?, ?, ?)";
 
         try (Connection conn = ConnectionFactory.getConnection();

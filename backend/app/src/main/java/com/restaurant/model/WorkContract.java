@@ -1,8 +1,9 @@
 package com.restaurant.model;
 
-import com.restaurant.model.enums.Employment;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+
+import com.restaurant.model.enums.Employment;
 
 import lombok.Getter;
 import lombok.Setter;

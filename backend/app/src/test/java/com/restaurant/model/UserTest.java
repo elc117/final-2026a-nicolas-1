@@ -1,21 +1,22 @@
 package com.restaurant.model;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.DisplayName;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.restaurant.model.enums.Role;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import com.restaurant.model.enums.AccessProfile;
 
 public class UserTest {
     
     @Test
-    @DisplayName("Could not create new user successfully")
+    @DisplayName("Create user object")
     void createUserTest() {
-        User user = new User("nicolas", "123456", Role.ADMIN);
+        User user = new User("nicolas", "123456", AccessProfile.ADMIN);
 
         assertEquals("nicolas", user.getLogin());
         assertEquals("123456", user.getPassword());
-        assertEquals(Role.ADMIN, user.getAccessProfile());
+        assertEquals(AccessProfile.ADMIN, user.getAccessProfile());
     }
     
 }

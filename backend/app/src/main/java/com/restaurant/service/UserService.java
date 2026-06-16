@@ -1,11 +1,11 @@
 package com.restaurant.service;
 
-import com.restaurant.repository.UserRepository;
-import com.restaurant.model.User;
-import com.restaurant.config.CryptoUtils;
-
 import java.util.Arrays;
-import java.util.Optional;
+import java.util.NoSuchElementException;
+
+import com.restaurant.config.CryptoUtils;
+import com.restaurant.model.User;
+import com.restaurant.repository.UserRepository;
 
 public class UserService {
     
@@ -20,21 +20,30 @@ public class UserService {
         this.userRepository = userRepository;
     }
     
+
     public void registerUser(User user, char[] purePassword) {
         if(user.getId() != null) {
             throw new IllegalArgumentException("ID is defined by database, should be NULL");
         }
 
-        Optional<User> existing = userRepository.searchByLogin(user.getLogin());
-        if(existing.isPresent()) {
-            throw new IllegalArgumentException("User with input login already exists");
-        }
+        userRepository.searchByLogin(user.getLogin())
+            .orElseThrow(() -> new IllegalArgumentException("User with input login already exists"));
 
         String safeHash = CryptoUtils.generateHash(purePassword);
+
         user.setPassword(safeHash);
         Arrays.fill(purePassword, '0');
-        userRepository.add(user);
+
+        userRepository.save(user);
     }
+
+
+    public User searchById(Long id) {
+        checkId(id);
+        
+        return userRepository.searchById(id)
+            .orElseThrow(() -> new NoSuchElementException("User with ID " + id + " does not exist"));
+    } 
 
 
     public boolean auth(String login, char[] inputPassword) {
@@ -42,6 +51,13 @@ public class UserService {
 
         boolean validPassword = CryptoUtils.checkPassword(inputPassword, user.getPassword());
         Arrays.fill(inputPassword, '0');
+
         return validPassword;
+    }
+
+
+    private void checkId(Long id) {
+        if(id == null || id <= 0)
+            throw new IllegalArgumentException("Invalid ID");
     }
 }

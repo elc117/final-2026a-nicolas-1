@@ -1,9 +1,10 @@
 package com.restaurant.service;
 
+import java.util.List;
+import java.util.NoSuchElementException;
+
 import com.restaurant.model.Ingredient;
 import com.restaurant.repository.IngredientRepository;
-
-import java.util.List;
 
 public class IngredientService {
     
@@ -12,6 +13,8 @@ public class IngredientService {
     public IngredientService() {
         this.ingredientRepository = new IngredientRepository();
     }
+
+    // Construtor alternativo para testes (Mock repository)
     public IngredientService(IngredientRepository ingredientRepository) {
         this.ingredientRepository = ingredientRepository;
     }
@@ -26,7 +29,7 @@ public class IngredientService {
             throw new IllegalArgumentException("Current amount cannot be negative");
         }
 
-        ingredientRepository.add(ingredient);
+        ingredientRepository.save(ingredient);
     }
 
 
@@ -36,11 +39,22 @@ public class IngredientService {
 
 
     public Ingredient searchById(Long id) {
-        if(id == null || id <= 0) {
-            throw new IllegalArgumentException("Invalid search ID");
-        }
+        checkId(id);
+        
+        return ingredientRepository.searchById(id)
+            .orElseThrow(() -> new NoSuchElementException("Ingredient with ID " + id + " does not exist"));
+    }
 
-        return ingredientRepository.searchById(id).get();
+
+    public void updateIngredient(Ingredient ingredient) {
+        checkId(ingredient.getId());
+        ingredientRepository.update(ingredient);
+    }
+
+
+    public void deleteIngredient(Long id) {
+        checkId(id);
+        ingredientRepository.delete(id);
     }
 
 
@@ -55,5 +69,11 @@ public class IngredientService {
         ingredient.setCurrentAmount(newAmount);
 
         ingredientRepository.update(ingredient);
+    }
+
+
+    private void checkId(Long id) {
+        if(id == null || id <= 0)
+            throw new IllegalArgumentException("Invalid ID");
     }
 }
