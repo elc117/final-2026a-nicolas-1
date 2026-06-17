@@ -4,10 +4,16 @@ import java.sql.Connection;
 import java.sql.Statement;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
 public abstract class BaseIntegrationTest {
     
+    @BeforeAll
+    static void generalSetup() {
+        DatabaseInitializer.initializeDatabase();
+    }
+
     @BeforeEach
     @AfterEach
     protected void clearDB() throws Exception {

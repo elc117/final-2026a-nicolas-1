@@ -9,32 +9,42 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.restaurant.dto.IngredientDTO;
 import com.restaurant.config.ConnectionFactory;
 import com.restaurant.model.Ingredient;
 import com.restaurant.model.enums.MeasurementUnit;
 
 public class IngredientRepository {
 
-    public void save(Ingredient ingredient) {
+    public Ingredient save(IngredientDTO ingredientDTO) {
         String sql = "INSERT INTO ingredients (name, current_amount, measurement_unit, minimum_stock) VALUES (?, ?, ?, ?)";
 
         try (Connection conn = ConnectionFactory.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
-            stmt.setString(1, ingredient.getName());
-            stmt.setDouble(2, ingredient.getCurrentAmount());
-            stmt.setString(3, ingredient.getMeasurementUnit().name());
-            stmt.setDouble(4, ingredient.getMinimumStock());
+            stmt.setString(1, ingredientDTO.name());
+            stmt.setString(2, ingredientDTO.measurementUnit().name());
+            stmt.setDouble(3, ingredientDTO.currentAmount());
+            stmt.setDouble(4, ingredientDTO.minimumStock());
 
             stmt.executeUpdate();
 
             try (ResultSet rs = stmt.getGeneratedKeys()) {
                 if(rs.next()) {
-                    ingredient.setId((rs.getLong(1)));
+                    return new Ingredient(
+                        rs.getLong(1),
+                        ingredientDTO.name(),
+                        ingredientDTO.measurementUnit(),
+                        ingredientDTO.currentAmount(),
+                        ingredientDTO.minimumStock()
+                    );
+                } else {
+                    throw new SQLException("Could not get DB generated ID");
                 }
             }
+    
         } catch (SQLException e) {
-            throw new RuntimeException("Error: could not add ingredient in DB", e);
+            throw new RuntimeException("Could not add ingredient to DB", e);
         }
     }
 
@@ -53,7 +63,7 @@ public class IngredientRepository {
             }
                 
         } catch (SQLException e){
-            throw new RuntimeException("Error in listing ingredients in DB", e);
+            throw new RuntimeException("Could not list all ingredients in DB", e);
         }
         return ingredients;
     }
@@ -73,28 +83,28 @@ public class IngredientRepository {
             }
 
         } catch (SQLException e) {
-            throw new RuntimeException("Error in finding ingredient by ID in DB", e);
+            throw new RuntimeException("Could not retrieve ingredient by ID in DB", e);
         }
         return Optional.empty();
     }
 
     
-    public void update(Ingredient ingredient) {
+    public void update(IngredientDTO ingredientDTO) {
         String sql = "UPDATE ingredients SET name = ?, current_amount = ?, measurement_unit = ?, minimum_stock = ? WHERE id = ?";
 
         try (Connection conn = ConnectionFactory.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, ingredient.getName());
-            stmt.setDouble(2, ingredient.getCurrentAmount());
-            stmt.setString(3, ingredient.getMeasurementUnit().name());
-            stmt.setDouble(4, ingredient.getMinimumStock());
-            stmt.setLong(5, ingredient.getId());
+            stmt.setString(1, ingredientDTO.name());
+            stmt.setString(2, ingredientDTO.measurementUnit().name());
+            stmt.setDouble(3, ingredientDTO.currentAmount());
+            stmt.setDouble(4, ingredientDTO.minimumStock());
+            stmt.setLong(5, ingredientDTO.id());
 
             stmt.executeUpdate();
 
         } catch (SQLException e){
-            throw new RuntimeException("Error in updating ingredient in DB");
+            throw new RuntimeException("Could not update ingredient in DB");
         }
     }
 
@@ -109,21 +119,21 @@ public class IngredientRepository {
             stmt.executeUpdate();
 
         } catch (SQLException e) {
-            throw new RuntimeException("Error in deleting ingredient from DB");
+            throw new RuntimeException("Could not delete ingredient from DB");
         }
     }
 
     // Mapeia ResultSet para um objeto da classe Ingredient - utilizado nas buscas
     private Ingredient mapResultSetToIngredient(ResultSet rs) throws SQLException{
-        Ingredient ing = new Ingredient();
 
-        ing.setId(rs.getLong("id"));
-        ing.setName(rs.getString("name"));
-        ing.setCurrentAmount(rs.getDouble("current_amount"));
-        ing.setMeasurementUnit(MeasurementUnit.valueOf(rs.getString("measurement_unit")));
-        ing.setMinimumStock(rs.getLong("minimum_stock"));
+        return new Ingredient(
+            rs.getLong("id"), 
+            rs.getString("name"),
+            MeasurementUnit.valueOf(rs.getString("measurement_unit")),
+            rs.getDouble("current_amount"),
+            rs.getLong("minimum_stock")
+        );
         
-        return ing;
     }
 
 }

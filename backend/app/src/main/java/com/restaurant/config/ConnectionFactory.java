@@ -15,7 +15,7 @@ public class ConnectionFactory {
         try {
             Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException e){
-            throw new RuntimeException("PostgreSQL driver no found in project. Maybe check build.gradle.kts?");
+            throw new RuntimeException("PostgreSQL driver not found in project. Maybe check build.gradle?");
         }
 
         // Checa a propriedade "environment" para decidir qual banco de dados utilizar (producao ou teste)

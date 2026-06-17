@@ -31,8 +31,9 @@ public class EmployeeRepositoryIT extends BaseIntegrationTest{
         User testUser = createTestUser();
         Employee testEmployee = createTestEmployee();
 
-        userRepository.save(testUser);
-        employeeRepository.save(testEmployee);
+        testUser = userRepository.save(testUser.toDto());
+        testEmployee.setUser(testUser);
+        testEmployee = employeeRepository.save(testEmployee.toDto());
 
         assertValidId(testUser);
         assertValidId(testEmployee);
@@ -45,14 +46,14 @@ public class EmployeeRepositoryIT extends BaseIntegrationTest{
         List<User> testUsers = createTestUsers();
         List<Employee> testEmployees = createTestEmployees();
 
-        userRepository.save(testUsers.get(0));
-        userRepository.save(testUsers.get(1));
+        testUsers.set(0, userRepository.save(testUsers.get(0).toDto()));
+        testUsers.set(1, userRepository.save(testUsers.get(1).toDto()));
        
         testEmployees.get(0).setUser(testUsers.get(0));
         testEmployees.get(1).setUser(testUsers.get(1));
         
-        employeeRepository.save(testEmployees.get(0));
-        employeeRepository.save(testEmployees.get(1));
+        testEmployees.set(0, employeeRepository.save(testEmployees.get(0).toDto()));
+        testEmployees.set(1, employeeRepository.save(testEmployees.get(1).toDto()));
 
         List<Employee> employeesFound = employeeRepository.searchAll();
 
@@ -67,11 +68,9 @@ public class EmployeeRepositoryIT extends BaseIntegrationTest{
         User testUser = createTestUser();
         Employee testEmployee = createTestEmployee();
 
-        userRepository.save(testUser);
-       
+        testUser = userRepository.save(testUser.toDto());
         testEmployee.setUser(testUser);
-        
-        employeeRepository.save(testEmployee);
+        testEmployee = employeeRepository.save(testEmployee.toDto());
 
         Optional<Employee> foundOptional = employeeRepository.searchById(testEmployee.getId());
 
@@ -83,21 +82,18 @@ public class EmployeeRepositoryIT extends BaseIntegrationTest{
 
     @Test
     @DisplayName("Update an employee's data in DB")
-    void updateTest() {
+    void updateTest(){
         User testUser = createTestUser();
         Employee testEmployee = createTestEmployee();
 
-        userRepository.save(testUser);
-        employeeRepository.save(testEmployee);
+        testUser = userRepository.save(testUser.toDto());
+        testEmployee.setUser(testUser);
+        testEmployee = employeeRepository.save(testEmployee.toDto());
 
-        User newUser = createTestUsers().get(1);
-        userRepository.save(newUser);
-
-        testEmployee.setUser(newUser);
         testEmployee.setSurname("Stroher");
         testEmployee.setRole(Role.WAITER);
 
-        employeeRepository.update(testEmployee);
+        employeeRepository.update(testEmployee.toDto());
 
         Employee updated = employeeRepository.searchById(testEmployee.getId()).get();
 
@@ -111,8 +107,9 @@ public class EmployeeRepositoryIT extends BaseIntegrationTest{
         User testUser = createTestUser();
         Employee testEmployee = createTestEmployee();
 
-        userRepository.save(testUser);
-        employeeRepository.save(testEmployee);
+        testUser = userRepository.save(testUser.toDto());
+        testEmployee.setUser(testUser);
+        testEmployee = employeeRepository.save(testEmployee.toDto());
 
         employeeRepository.delete(testEmployee.getId());
 

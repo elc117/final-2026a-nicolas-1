@@ -1,4 +1,4 @@
-package com.restaurant.config;
+package com.restaurant.utils;
 
 import org.mindrot.jbcrypt.BCrypt;
 

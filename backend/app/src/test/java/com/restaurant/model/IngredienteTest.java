@@ -11,8 +11,9 @@ public class IngredienteTest {
     @Test
     @DisplayName("Create ingredient object")
     void createIngredientTest(){
-        Ingredient tomate = new Ingredient("Tomate", MeasurementUnit.KG, 10.0, 2.0);
+        Ingredient tomate = new Ingredient(Long.valueOf(1), "Tomate", MeasurementUnit.KG, 10.0, 2.0);
         
+        assertEquals(1, tomate.getId());
         assertEquals("Tomate", tomate.getName());
         assertEquals(MeasurementUnit.KG, tomate.getMeasurementUnit());
         assertEquals(false, tomate.isStockLow());
@@ -21,7 +22,7 @@ public class IngredienteTest {
     @Test
     @DisplayName("Identify low stock")
     void isStockLow(){
-        Ingredient tomate = new Ingredient("Tomate", MeasurementUnit.KG, 1.0, 2.0);
+        Ingredient tomate = new Ingredient(Long.valueOf(1), "Tomate", MeasurementUnit.KG, 1.0, 2.0);
 
         assertEquals(true, tomate.isStockLow());
     }

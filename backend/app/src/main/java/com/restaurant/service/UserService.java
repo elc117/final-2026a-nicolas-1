@@ -3,40 +3,23 @@ package com.restaurant.service;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 
-import com.restaurant.config.CryptoUtils;
 import com.restaurant.model.User;
 import com.restaurant.repository.UserRepository;
+import com.restaurant.utils.CryptoUtils;
 
 public class UserService {
     
-    private final UserRepository userRepository;
+    private static final UserRepository userRepository = new UserRepository();
 
-    public UserService() {
-        this.userRepository = new UserRepository();
-    }
-
-    // Construtor alternativo para testes (Mock repository)
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-    
-
-    public void registerUser(User user, char[] purePassword) {
-        if(user.getId() != null) {
-            throw new IllegalArgumentException("ID is defined by database, should be NULL");
-        }
-
-        userRepository.searchByLogin(user.getLogin())
-            .orElseThrow(() -> new IllegalArgumentException("User with input login already exists"));
-
+    public static void registerUser(User user, char[] purePassword) {
+        validateNewUser(user);
         String safeHash = CryptoUtils.generateHash(purePassword);
 
         user.setPassword(safeHash);
         Arrays.fill(purePassword, '0');
 
-        userRepository.save(user);
+        userRepository.save(user.toDto());
     }
-
 
     public User searchById(Long id) {
         checkId(id);
@@ -55,9 +38,21 @@ public class UserService {
         return validPassword;
     }
 
-
     private void checkId(Long id) {
         if(id == null || id <= 0)
             throw new IllegalArgumentException("Invalid ID");
+    }
+
+    public static void validateNewUser(User user) {
+        if(user.getId() != null) {
+            throw new IllegalArgumentException("ID is defined by database, should be null");
+        }
+
+        userRepository.searchByLogin(user.getLogin())
+            .orElseThrow(() -> new IllegalArgumentException("User with input login already exists"));
+
+        // String safeHash = CryptoUtils.generateHash(user.getPassword().toCharArray());
+        //userRepository.searchByPassword(safeHash)
+        //    .orElseThrow(() -> new IllegalArgumentException("User with this password already exists"));
     }
 }

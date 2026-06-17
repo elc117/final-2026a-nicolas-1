@@ -29,34 +29,26 @@ public class IngredientService {
             throw new IllegalArgumentException("Current amount cannot be negative");
         }
 
-        ingredientRepository.save(ingredient);
+        ingredientRepository.save(ingredient.toDto());
     }
-
 
     public List<Ingredient> listStock() {
         return ingredientRepository.searchAll();
     }
 
-
     public Ingredient searchById(Long id) {
-        checkId(id);
-        
         return ingredientRepository.searchById(id)
             .orElseThrow(() -> new NoSuchElementException("Ingredient with ID " + id + " does not exist"));
-    }
 
+    }
 
     public void updateIngredient(Ingredient ingredient) {
-        checkId(ingredient.getId());
-        ingredientRepository.update(ingredient);
+        ingredientRepository.update(ingredient.toDto());
     }
-
 
     public void deleteIngredient(Long id) {
-        checkId(id);
         ingredientRepository.delete(id);
     }
-
 
     public void consumeStock(Long id, Double consumedAmount) {
         Ingredient ingredient = searchById(id);
@@ -68,12 +60,7 @@ public class IngredientService {
         double newAmount = ingredient.getCurrentAmount() - consumedAmount;
         ingredient.setCurrentAmount(newAmount);
 
-        ingredientRepository.update(ingredient);
+        ingredientRepository.update(ingredient.toDto());
     }
-
-
-    private void checkId(Long id) {
-        if(id == null || id <= 0)
-            throw new IllegalArgumentException("Invalid ID");
-    }
+    
 }

@@ -25,7 +25,7 @@ public class UserRepositoryIT extends BaseIntegrationTest{
     void addTest() {
         User testUser = createTestUser();
 
-        repository.save(testUser);
+        testUser = repository.save(testUser.toDto());
 
         assertValidId(testUser);
     }
@@ -36,8 +36,8 @@ public class UserRepositoryIT extends BaseIntegrationTest{
     void searchAllTest() {
         List<User> testUsers = createTestUsers();
 
-        repository.save(testUsers.get(0));
-        repository.save(testUsers.get(1));
+        testUsers.set(0, repository.save(testUsers.get(0).toDto()));
+        testUsers.set(1, repository.save(testUsers.get(1).toDto()));
 
         List<User> usersFound = repository.searchAll();
 
@@ -51,7 +51,7 @@ public class UserRepositoryIT extends BaseIntegrationTest{
     void searchByIdTest() {
         User testUser = createTestUser();
 
-        repository.save(testUser);
+        testUser = repository.save(testUser.toDto());
 
         Optional<User> foundOptional = repository.searchById(testUser.getId());
         
@@ -66,7 +66,7 @@ public class UserRepositoryIT extends BaseIntegrationTest{
     void searchByLoginTest() {
         User testUser = createTestUser();
 
-        repository.save(testUser);
+        testUser = repository.save(testUser.toDto());
 
         Optional<User> foundOptional = repository.searchByLogin(testUser.getLogin());
 
@@ -81,12 +81,12 @@ public class UserRepositoryIT extends BaseIntegrationTest{
     void updateTest() {
         User testUser = createTestUser();
 
-        repository.save(testUser);
+        testUser = repository.save(testUser.toDto());
 
         testUser.setLogin("nicolas123");
         testUser.setAccessProfile(AccessProfile.CHEF);
 
-        repository.update(testUser);
+        repository.update(testUser.toDto());
         User updated = repository.searchById(testUser.getId()).get();
 
         assertEqualUsers(testUser, updated);
@@ -98,7 +98,7 @@ public class UserRepositoryIT extends BaseIntegrationTest{
     void deleteTest() {
         User testUser = createTestUser();
 
-        repository.save(testUser);
+        testUser = repository.save(testUser.toDto());
         repository.delete(testUser.getId());
 
         Optional<User> deleted = repository.searchById(testUser.getId());

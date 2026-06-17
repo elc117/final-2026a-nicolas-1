@@ -24,7 +24,7 @@ public class IngredientRepositoryIT extends BaseIntegrationTest{
     void addTest() {
         Ingredient testIngredient = createTestIngredient();
 
-        repository.save(testIngredient);
+        testIngredient = repository.save(testIngredient.toDto());
 
         assertValidId(testIngredient);
     }
@@ -35,8 +35,8 @@ public class IngredientRepositoryIT extends BaseIntegrationTest{
     void searchIngredientsTest() {
         List<Ingredient> testIngredients = createTestIngredients();
 
-        repository.save(testIngredients.get(0));
-        repository.save(testIngredients.get(1));
+        testIngredients.set(0, repository.save(testIngredients.get(0).toDto()));
+        testIngredients.set(1, repository.save(testIngredients.get(1).toDto()));
 
         List<Ingredient> ingredientsFound = repository.searchAll();
 
@@ -50,7 +50,7 @@ public class IngredientRepositoryIT extends BaseIntegrationTest{
     void searchByIdTest() {
         Ingredient testIngredient = createTestIngredient();
         
-        repository.save(testIngredient);
+        testIngredient = repository.save(testIngredient.toDto());
 
         Optional<Ingredient> foundOptional = repository.searchById(testIngredient.getId());
 
@@ -65,12 +65,12 @@ public class IngredientRepositoryIT extends BaseIntegrationTest{
     void updateTest() {
         Ingredient testIngredient = createTestIngredient();
         
-        repository.save(testIngredient);
+        testIngredient = repository.save(testIngredient.toDto());
 
         testIngredient.setName("Leite Integral");
         testIngredient.setCurrentAmount(18.0);
         
-        repository.update(testIngredient);
+        repository.update(testIngredient.toDto());
 
         Ingredient updated = repository.searchById(testIngredient.getId()).get();
         
@@ -83,7 +83,7 @@ public class IngredientRepositoryIT extends BaseIntegrationTest{
     void deleteTest() {
         Ingredient testIngredient = createTestIngredient();
         
-        repository.save(testIngredient);
+        testIngredient = repository.save(testIngredient.toDto());
         repository.delete(testIngredient.getId());
 
         Optional<Ingredient> deleted = repository.searchById(testIngredient.getId());
