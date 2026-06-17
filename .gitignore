@@ -24,5 +24,8 @@ out/
 hs_err_pid*
 replay_pid*
 
+# Ignore Gradle configuration cache
+**/configuration-cache/
+
 # Ignore macOS visual properties
 .DS_Store
