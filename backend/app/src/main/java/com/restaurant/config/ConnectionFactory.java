@@ -9,6 +9,7 @@ public class ConnectionFactory {
     private static final String USER = "res_user";
     private static final String PASSWORD = "restaurante";
 
+    
     static {
 
         // Carrega o driver do postgre na memoria

@@ -22,6 +22,7 @@ public class WorkHour {
         this.clockOut = clockOut;
     }
 
+    
     public WorkHour() {
         this.date = null;
         this.clockIn = null;

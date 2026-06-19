@@ -25,6 +25,7 @@ public class Employee {
         this.user = user;
     }
 
+
     // Cria um objeto invalido, esse contrutor nao deve ser utilizado
     public Employee(){
         this.id = null;
@@ -33,6 +34,7 @@ public class Employee {
         this.role = Role.UNDEFINED;
         this.user = null;
     }
+    
     
     public EmployeeDTO toDto() {
         return new EmployeeDTO(

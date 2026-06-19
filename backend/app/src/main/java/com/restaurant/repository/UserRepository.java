@@ -102,17 +102,38 @@ public class UserRepository {
             }
 
         } catch (SQLException e) {
-            throw new RuntimeException("Could not retrieve user from DB", e);
+            throw new RuntimeException("Could not retrieve user from DB by login", e);
         }
         return Optional.empty();
     }
 
     
-    public void update(UserDTO userDTO) {
-        String sql = "UPDATE users SET login = ?, password = ?, access_profile = ? WHERE id = ?";
+    public Optional<User> searchByPassword(String hash) {
+        String sql = "SELECT * FROM users WHERE password = ?";
 
         try (Connection conn = ConnectionFactory.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+                stmt.setString(2, hash);
+
+                try(ResultSet rs = stmt.executeQuery()) {
+                    if(rs.next()) {
+                        return Optional.of(mapResultSetToUser(rs));
+                    }
+                }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Could not retrieve user from DB by password");
+        }
+        return Optional.empty();
+    }
+
+    
+    public User update(UserDTO userDTO) {
+        String sql = "UPDATE users SET login = ?, password = ?, access_profile = ? WHERE id = ?";
+
+        try (Connection conn = ConnectionFactory.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             stmt.setString(1, userDTO.login());
             stmt.setString(2, userDTO.password());
@@ -120,6 +141,14 @@ public class UserRepository {
             stmt.setLong(4, userDTO.id());
 
             stmt.executeUpdate();
+
+            try(ResultSet rs = stmt.getGeneratedKeys()) {
+                if(rs.next()) {
+                    return mapResultSetToUser(rs);
+                } else {
+                    throw new SQLException("Could not retrieve updated user data");
+                }
+            }
 
         } catch (SQLException e) {
             throw new RuntimeException("Could not update user in DB", e);
@@ -140,6 +169,8 @@ public class UserRepository {
             throw new RuntimeException("Could not delete user from DB", e);
         }
     }
+
+
 
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
         

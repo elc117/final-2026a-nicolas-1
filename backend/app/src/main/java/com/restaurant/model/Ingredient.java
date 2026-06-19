@@ -23,6 +23,7 @@ public class Ingredient {
         this.minimumStock = minimumStock;
     }
 
+
     // Cria um bjeto invalido, esse contrutor nao deve ser utilizado
     public Ingredient() {
         this.id = null;
@@ -32,9 +33,11 @@ public class Ingredient {
         this.minimumStock = 0.0;
     }
 
+
     public boolean isStockLow() {
         return this.currentAmount < this.minimumStock;
     }
+
 
     public IngredientDTO toDto() {
         return new IngredientDTO(

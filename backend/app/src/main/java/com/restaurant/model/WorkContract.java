@@ -18,12 +18,14 @@ public class WorkContract {
     private Employment employmentType;
     private LocalDate admissionDate;
 
+
     public WorkContract(Long id, BigDecimal salary, Employment employmentType, LocalDate admissionDate) {
         this.salary = salary;
         this.employmentType = employmentType;
         this.admissionDate = admissionDate;
     }
 
+    
     public WorkContract() {
         this.salary = null;
         this.employmentType = Employment.UNDEFINED;

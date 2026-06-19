@@ -17,7 +17,7 @@ import com.restaurant.model.enums.MeasurementUnit;
 public class IngredientRepository {
 
     public Ingredient save(IngredientDTO ingredientDTO) {
-        String sql = "INSERT INTO ingredients (name, current_amount, measurement_unit, minimum_stock) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO ingredients (name, measurement_unit, current_amount, minimum_stock) VALUES (?, ?, ?, ?)";
 
         try (Connection conn = ConnectionFactory.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -89,11 +89,11 @@ public class IngredientRepository {
     }
 
     
-    public void update(IngredientDTO ingredientDTO) {
-        String sql = "UPDATE ingredients SET name = ?, current_amount = ?, measurement_unit = ?, minimum_stock = ? WHERE id = ?";
+    public Ingredient update(IngredientDTO ingredientDTO) {
+        String sql = "UPDATE ingredients SET name = ?, measurement_unit = ?, current_amount = ?, minimum_stock = ? WHERE id = ?";
 
         try (Connection conn = ConnectionFactory.getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             stmt.setString(1, ingredientDTO.name());
             stmt.setString(2, ingredientDTO.measurementUnit().name());
@@ -102,6 +102,14 @@ public class IngredientRepository {
             stmt.setLong(5, ingredientDTO.id());
 
             stmt.executeUpdate();
+
+            try(ResultSet rs = stmt.getGeneratedKeys()) {
+                if(rs.next()) {
+                    return mapResultSetToIngredient(rs);
+                } else {
+                    throw new SQLException("Could not retrieve updated ingredient data");
+                }
+            }
 
         } catch (SQLException e){
             throw new RuntimeException("Could not update ingredient in DB");
@@ -123,6 +131,8 @@ public class IngredientRepository {
         }
     }
 
+
+    
     // Mapeia ResultSet para um objeto da classe Ingredient - utilizado nas buscas
     private Ingredient mapResultSetToIngredient(ResultSet rs) throws SQLException{
 

@@ -26,7 +26,16 @@ dependencies {
 
     implementation("org.postgresql:postgresql:42.7.3")
 
+    // BCrypt para criptografia de senha
     implementation("org.mindrot:jbcrypt:0.4")
+
+    implementation("io.javalin:javalin:7.2.2")
+
+    // Extensao do Javalin para entender e converter JSON automaticamente
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.17.0")
+
+    // Logger simples para mostrar acessos no terminal
+    implementation("org.slf4j:slf4j-simple:2.0.13")
 
     compileOnly("org.projectlombok:lombok:1.18.30")
     annotationProcessor("org.projectlombok:lombok:1.18.30")
@@ -41,7 +50,7 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = "com.restaurante.App"
+    mainClass = "com.restaurant.App"
 }
 
 tasks.named<Test>("test") {

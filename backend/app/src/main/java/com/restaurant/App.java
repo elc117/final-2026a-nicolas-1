@@ -3,12 +3,76 @@
  */
 package com.restaurant;
 
-public class App {
-    public String getGreeting() {
-        return "Hello World!";
-    }
+import static io.javalin.apibuilder.ApiBuilder.delete;
+import static io.javalin.apibuilder.ApiBuilder.get;
+import static io.javalin.apibuilder.ApiBuilder.path;
+import static io.javalin.apibuilder.ApiBuilder.post;
 
+import com.restaurant.config.DatabaseInitializer;
+import com.restaurant.controller.EmployeeController;
+import com.restaurant.controller.IngredientController;
+import com.restaurant.controller.UserController;
+
+import io.javalin.Javalin;
+
+public class App {
     public static void main(String[] args) {
-        System.out.println(new App().getGreeting());
+        
+        DatabaseInitializer.initializeDatabase();
+
+        final IngredientController ingredientController = new IngredientController();
+        final UserController userController = new UserController();
+        final EmployeeController employeeController = new EmployeeController();
+
+        Javalin app = Javalin.create(config -> {
+
+            config.bundledPlugins.enableCors(cors -> {
+                cors.addRule(it -> {
+                    it.anyHost();
+                });
+            });
+
+            config.routes.apiBuilder(() -> {
+
+                // Ingredientes
+                path("api/ingredients", () -> {
+                    get(ingredientController::list);
+                    post(ingredientController::register);
+                });
+                path("api/ingredients/:id", () -> {
+                    get(ingredientController::getById);
+                    post(ingredientController::update);
+                    delete(ingredientController::delete);
+                });
+
+
+                // Usuarios
+                path("api/users", () -> {
+                    get(userController::list);
+                    post(userController::register);
+                });
+                path("api/users/:id", () -> {
+                    get(userController::getById);
+                    post(userController::update);
+                    delete(userController::delete);
+                });
+
+
+                // Funcionarios
+                path("api/employees", () -> {
+                    get(employeeController::list);
+                    post(employeeController::register);
+                });
+                path("api/employees/:id", () -> {
+                    get(employeeController::getById);
+                    post(employeeController::update);
+                    delete(userController::delete);
+                });
+                
+            });
+        });
+
+        app.start(8080);
+        System.out.println("Servidor rodando na porta 8080...");
     }
 }

@@ -20,7 +20,7 @@ import com.restaurant.model.enums.Role;
 public class EmployeeRepository {
     
     public Employee save(EmployeeDTO employeeDTO) {
-        String sql = "INSERT INTO employees (cpf, name, surname, role, user_id) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO employees (name, surname, cpf, role, user_id) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = ConnectionFactory.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -60,10 +60,10 @@ public class EmployeeRepository {
 
 
     public List<Employee> searchAll() {
-        String sql = "SELECT e.id AS employee_id, e.cpf, e.name, e.surname, e.role, " +
+        String sql = "SELECT e.id AS employee_id, e.name, e.surname, e.cpf, e.role, " +
                      "u.id AS user_id, u.login, u.password, u.access_profile FROM employees e " +
                      "LEFT JOIN users u ON e.user_id = u.id"; 
-
+        
         try (Connection conn = ConnectionFactory.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery()) {
@@ -82,7 +82,7 @@ public class EmployeeRepository {
 
 
     public Optional<Employee> searchById(Long id) {
-        String sql = "SELECT e.id AS employee_id, e.cpf, e.name, e.surname, e.role, " +
+        String sql = "SELECT e.id AS employee_id, e.name, e.surname, e.cpf, e.role, " +
                      "u.id AS user_id, u.login, u.password, u.access_profile FROM employees e " +
                      "LEFT JOIN users u ON e.user_id = u.id WHERE e.id = ?"; 
 
@@ -90,43 +90,67 @@ public class EmployeeRepository {
             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setLong(1, id);
-            try(ResultSet rs = stmt.executeQuery()) {
+            try (ResultSet rs = stmt.executeQuery()) {
                 if(rs.next()) {
                     return Optional.of(mapResultSetToEmployee(rs));
                 }
             }
 
         } catch (SQLException e) {
-            throw new RuntimeException("Could not retrieve employee from DB");
+            throw new RuntimeException("Could not retrieve employee from DB by ID");
         }
         return Optional.empty();
     }
 
 
-    public void update(EmployeeDTO employeeDTO) {
-        String sql = "UPDATE employees SET cpf = ?, name = ?, surname = ?, role = ?, user_id = ? WHERE id = ?";
-
-        Optional<Employee> currentEmployee = searchById(employeeDTO.id());
-
-        if (currentEmployee.isPresent()){
-
-            try (Connection conn = ConnectionFactory.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-                stmt.setString(1, employeeDTO.name());
-                stmt.setString(2, employeeDTO.surname());
-                stmt.setString(3, employeeDTO.cpf());
-                stmt.setString(4, employeeDTO.role().name());
-                stmt.setLong(5, employeeDTO.user().getId());
-                stmt.setLong(6, employeeDTO.id());
-
-                stmt.executeUpdate();
-
-            } catch (SQLException e) {
-                throw new RuntimeException("Could not update employee in DB");
+    public Optional<Employee> searchByCpf(String cpf) {
+        String sql = "SELECT e.id AS employee_id, e.name, e.surname, e.cpf, e.role, " +
+                     "u.id AS user_id, u.login, u.password, u.access_profile FROM employees e " +
+                     "LEFT JOIN users u ON e.user_id = u.id WHERE e.id = ?"; 
+        
+        try (Connection conn = ConnectionFactory.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(4, cpf);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if(rs.next()) {
+                    return Optional.of(mapResultSetToEmployee(rs));
+                }
             }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Could not retrieve employee from DB by CPF");
         }
-    
+        return Optional.empty();
+    }
+
+
+    public Employee update(EmployeeDTO employeeDTO) {
+        String sql = "UPDATE employees SET name = ?, surname = ?, cpf = ?, role = ?, user_id = ? WHERE id = ?";
+
+        try (Connection conn = ConnectionFactory.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            stmt.setString(1, employeeDTO.name());
+            stmt.setString(2, employeeDTO.surname());
+            stmt.setString(3, employeeDTO.cpf());
+            stmt.setString(4, employeeDTO.role().name());
+            stmt.setLong(5, employeeDTO.user().getId());
+            stmt.setLong(6, employeeDTO.id());
+
+            stmt.executeUpdate();
+
+            try(ResultSet rs = stmt.getGeneratedKeys()) {
+                if(rs.next()) {
+                    return mapResultSetToEmployee(rs);
+                } else {
+                    throw new SQLException("Could not retrieve updated employee data");
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Could not update employee in DB");
+        }
     }
 
 
@@ -145,6 +169,7 @@ public class EmployeeRepository {
     }
 
 
+    
     private Employee mapResultSetToEmployee(ResultSet rs) throws SQLException {
 
         User user;

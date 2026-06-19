@@ -21,6 +21,7 @@ public class User {
         this.accessProfile = accessProfile;
     }
 
+
     // Cria um objeto invalido, esse construtor nao deve ser utilizado
     public User() {
         this.id = null;
@@ -29,6 +30,7 @@ public class User {
         this.accessProfile = AccessProfile.UNDEFINED;
     }
 
+    
     public UserDTO toDto() {
         return new UserDTO(
             this.id,

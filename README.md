@@ -1,5 +1,8 @@
 # FoodCheck - Gerenciamento de restaurantes
 
+Nícolas Atkinson Ströher - Sistemas de Informação, 3° semestre <br>
+Universidade Federal de Santa Maria, 2026
+
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/8MfjtJ-y)
 
 ## Descrição
@@ -88,9 +91,10 @@ cd backend
 - DTOs para comunicação dos objetos com o DB
 - Script de inicialização de tabelas do banco de dados - `resources/schema.sql`
 
----
-
-<div align="center">
- Nícolas Atkinson Ströher - Sistemas de Informação, 3° semestre <br>
-Universidade Federal de Santa Maria, 2026
-<div>
+### 19/06/2026
+**10. Controle HTTP**
+- Controllers criados em `controller/`para comunicação com frontend - `IngredientController.java, UserController.java, EmployeeController.java`
+- Arquivos de `service/` finalizados
+- Mapeamento de endpoints implementado em `main/.../App.java`
+	- *O backend já pode receber requisições, falta comunicar com o front*
+- Função `update` atualizada em todos os repositórios para retornar o objeto atualizado
