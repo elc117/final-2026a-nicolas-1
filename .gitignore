@@ -19,6 +19,17 @@ out/
 .project
 .settings/
 
+# Ignore v0 sandbox internal files
+__v0_runtime_loader.js
+__v0_devtools.tsx
+__v0_jsx-dev-runtime.ts
+.snowflake/
+.v0-trash/
+.vercel/
+
+# Ignore environment variables
+.env*.local
+
 # Ignore local logs
 *.log
 hs_err_pid*
@@ -27,5 +38,7 @@ replay_pid*
 # Ignore Gradle configuration cache
 **/configuration-cache/
 
-# Ignore macOS visual properties
+# Common ignores
+node_modules
+.next/
 .DS_Store

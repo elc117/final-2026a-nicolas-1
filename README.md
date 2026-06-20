@@ -98,3 +98,7 @@ cd backend
 - Mapeamento de endpoints implementado em `main/.../App.java`
 	- *O backend já pode receber requisições, falta comunicar com o front*
 - Função `update` atualizada em todos os repositórios para retornar o objeto atualizado
+
+### 20/06/2026
+**11. Frontend adicionado**
+- Adicionado projeto de frontend gerado com v0
