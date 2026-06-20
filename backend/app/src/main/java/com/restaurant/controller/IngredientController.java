@@ -31,9 +31,9 @@ public class IngredientController {
 
 
     public void getById(Context ctx) {
-        IngredientDTO dto = ctx.bodyAsClass(IngredientDTO.class);
+        Long id = ctx.pathParamAsClass("id", Long.class).get();
 
-        Ingredient ingredient = ingredientService.getIngredientById(dto.id());
+        Ingredient ingredient = ingredientService.getIngredientById(id);
 
         ctx.json(ingredient);
         ctx.status(200);
@@ -41,21 +41,30 @@ public class IngredientController {
 
     
     public void update(Context ctx) {
-        IngredientDTO dto = ctx.bodyAsClass(IngredientDTO.class);
+        Long id = ctx.pathParamAsClass("id", Long.class).get();
 
-        Ingredient updatedIngredient = ingredientService.getIngredientById(dto.id());
+        IngredientDTO body = ctx.bodyAsClass(IngredientDTO.class);
 
+        IngredientDTO toUpdate = new IngredientDTO(
+            id,
+            body.name(),
+            body.measurementUnit(),
+            body.currentAmount(),
+            body.minimumStock()
+        );
+        Ingredient updatedIngredient = ingredientService.updateIngredient(toUpdate);
+        
         ctx.json(updatedIngredient);
         ctx.status(200);
     }
 
 
     public void delete(Context ctx) {
-        IngredientDTO dto = ctx.bodyAsClass(IngredientDTO.class);
+        Long id = ctx.pathParamAsClass("id", Long.class).get();
 
-        ingredientService.deleteIngredient(dto.id());
+        ingredientService.deleteIngredient(id);
 
-        ctx.json(Map.of());
+        ctx.json("{}");
         ctx.status(200);
     }
 }

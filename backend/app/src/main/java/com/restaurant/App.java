@@ -39,7 +39,7 @@ public class App {
                     get(ingredientController::list);
                     post(ingredientController::register);
                 });
-                path("api/ingredients/:id", () -> {
+                path("api/ingredients/{id}", () -> {
                     get(ingredientController::getById);
                     post(ingredientController::update);
                     delete(ingredientController::delete);
@@ -51,7 +51,7 @@ public class App {
                     get(userController::list);
                     post(userController::register);
                 });
-                path("api/users/:id", () -> {
+                path("api/users/{id}", () -> {
                     get(userController::getById);
                     post(userController::update);
                     delete(userController::delete);
@@ -63,7 +63,7 @@ public class App {
                     get(employeeController::list);
                     post(employeeController::register);
                 });
-                path("api/employees/:id", () -> {
+                path("api/employees/{id}", () -> {
                     get(employeeController::getById);
                     post(employeeController::update);
                     delete(userController::delete);
