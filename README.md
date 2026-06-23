@@ -117,3 +117,9 @@ cd backend
 - Classe `Employee` alterada para tratar novo atributo `hasAccess`
 	- *Atributo utilizado para checar se um funcionário cadastrado tem acesso ao sistema*
 - Validação de CPF e usuário corrigidas
+
+**14. Classe de pedidos**
+- Nova classe `model/Order.java` implementada para representar pedidos de integrediente.
+- Camadas de repositório, serviço e controle para `model`
+	- `repository/OrderRepository.java, service/OrderService.java, controller/OrderController.java`
+- DTO `OrderDTO.java` para comunicação de objetos `Order` com o banco de dados

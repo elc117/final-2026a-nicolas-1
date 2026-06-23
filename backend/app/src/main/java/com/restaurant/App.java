@@ -11,6 +11,7 @@ import static io.javalin.apibuilder.ApiBuilder.post;
 import com.restaurant.config.DatabaseInitializer;
 import com.restaurant.controller.EmployeeController;
 import com.restaurant.controller.IngredientController;
+import com.restaurant.controller.OrderController;
 import com.restaurant.controller.UserController;
 
 import io.javalin.Javalin;
@@ -21,6 +22,7 @@ public class App {
         DatabaseInitializer.initializeDatabase();
 
         final IngredientController ingredientController = new IngredientController();
+        final OrderController orderController = new OrderController();
         final UserController userController = new UserController();
         final EmployeeController employeeController = new EmployeeController();
 
@@ -67,6 +69,18 @@ public class App {
                     get(employeeController::getById);
                     post(employeeController::update);
                     delete(employeeController::delete);
+                });
+
+
+                // Pedidos
+                path("/api/orders", () -> {
+                    get(orderController::list);
+                    post(orderController::register);
+                });
+                path("/api/orders/{id}", () -> {
+                    get(orderController::getById);
+                    post(orderController::update);
+                    delete(orderController::delete);
                 });
                 
             });

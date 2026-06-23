@@ -7,6 +7,23 @@ CREATE TABLE IF NOT EXISTS ingredients (
     minimum_stock NUMERIC(10, 2) NOT NULL
 );
 
+-- Tabela de pedidos
+CREATE TABLE IF NOT EXISTS orders (
+    id BIGSERIAL PRIMARY KEY,
+    amount NUMERIC(10, 2) NOT NULL,
+    date DATE NOT NULL,
+    status VARCHAR(30) NOT NULL,
+    contact VARCHAR(60),
+    contact_channel VARCHAR(20) NOT NULL,
+    ingredient_id BIGINT,
+
+    -- Cria chave estrangeira
+    CONSTRAINT fk_order_ingredient
+        FOREIGN KEY (ingredient_id)
+        REFERENCES ingredients(id)
+        ON DELETE SET NULL
+);
+
 -- Tabela de usuarios
 CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,

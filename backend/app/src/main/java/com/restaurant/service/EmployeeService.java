@@ -56,11 +56,11 @@ public class EmployeeService {
 
         Employee old = employeeRepository.searchById(dto.id()).get();
 
-        if(!old.isHasAccess() && dto.hasAccess()) {
+        if(!old.hasAccess() && dto.hasAccess()) {
             userService.registerUser(dto.user().toDto(), dto.user().getPassword().toCharArray());
         }
 
-        if(old.isHasAccess() && !dto.hasAccess()) {
+        if(old.hasAccess() && !dto.hasAccess()) {
             userService.deleteUser(old.getUser().getId());
         }
 

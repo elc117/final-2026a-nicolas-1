@@ -20,7 +20,7 @@ public abstract class BaseIntegrationTest {
         try (Connection conn = ConnectionFactory.getConnection();
             Statement stmt = conn.createStatement()) {
 
-            stmt.executeUpdate("TRUNCATE TABLE ingredients, employees, users RESTART IDENTITY");
+            stmt.executeUpdate("TRUNCATE TABLE ingredients, employees, users, orders RESTART IDENTITY");
         }
     }
 

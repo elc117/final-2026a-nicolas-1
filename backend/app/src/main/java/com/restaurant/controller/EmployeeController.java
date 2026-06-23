@@ -1,10 +1,8 @@
 package com.restaurant.controller;
 
 import java.util.List;
-import java.util.Map;
 
 import com.restaurant.dto.EmployeeDTO;
-import com.restaurant.dto.IngredientDTO;
 import com.restaurant.model.Employee;
 import com.restaurant.service.EmployeeService;
 
@@ -67,7 +65,7 @@ public class EmployeeController {
 
         employeeService.deleteEmployee(id);
 
-        ctx.json(Map.of());
+        ctx.json("");
         ctx.status(200);
     }
     

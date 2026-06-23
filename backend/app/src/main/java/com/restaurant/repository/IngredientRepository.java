@@ -16,16 +16,16 @@ import com.restaurant.model.enums.MeasurementUnit;
 
 public class IngredientRepository {
 
-    public Ingredient save(IngredientDTO ingredientDTO) {
+    public Ingredient save(IngredientDTO dto) {
         String sql = "INSERT INTO ingredients (name, measurement_unit, current_amount, minimum_stock) VALUES (?, ?, ?, ?)";
 
         try (Connection conn = ConnectionFactory.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
-            stmt.setString(1, ingredientDTO.name());
-            stmt.setString(2, ingredientDTO.measurementUnit().name());
-            stmt.setDouble(3, ingredientDTO.currentAmount());
-            stmt.setDouble(4, ingredientDTO.minimumStock());
+            stmt.setString(1, dto.name());
+            stmt.setString(2, dto.measurementUnit().name());
+            stmt.setDouble(3, dto.currentAmount());
+            stmt.setDouble(4, dto.minimumStock());
 
             stmt.executeUpdate();
 
@@ -33,10 +33,10 @@ public class IngredientRepository {
                 if(rs.next()) {
                     return new Ingredient(
                         rs.getLong(1),
-                        ingredientDTO.name(),
-                        ingredientDTO.measurementUnit(),
-                        ingredientDTO.currentAmount(),
-                        ingredientDTO.minimumStock()
+                        dto.name(),
+                        dto.measurementUnit(),
+                        dto.currentAmount(),
+                        dto.minimumStock()
                     );
                 } else {
                     throw new SQLException("Could not get DB generated ID");
@@ -89,17 +89,17 @@ public class IngredientRepository {
     }
 
     
-    public Ingredient update(IngredientDTO ingredientDTO) {
+    public Ingredient update(IngredientDTO dto) {
         String sql = "UPDATE ingredients SET name = ?, measurement_unit = ?, current_amount = ?, minimum_stock = ? WHERE id = ?";
 
         try (Connection conn = ConnectionFactory.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            stmt.setString(1, ingredientDTO.name());
-            stmt.setString(2, ingredientDTO.measurementUnit().name());
-            stmt.setDouble(3, ingredientDTO.currentAmount());
-            stmt.setDouble(4, ingredientDTO.minimumStock());
-            stmt.setLong(5, ingredientDTO.id());
+            stmt.setString(1, dto.name());
+            stmt.setString(2, dto.measurementUnit().name());
+            stmt.setDouble(3, dto.currentAmount());
+            stmt.setDouble(4, dto.minimumStock());
+            stmt.setLong(5, dto.id());
 
             stmt.executeUpdate();
 
