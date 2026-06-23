@@ -1,6 +1,7 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+import { createIngredient, getIngredients, getIngredientById, updateIngredient, deleteIngredient} from "@/lib/api/ingredients"
 import { Plus, Pencil, Trash2, AlertTriangle, Package, Search, ShoppingCart } from "lucide-react"
 import { Badge } from "@/components/ui-lite/badge"
 import { Button, Input, Select } from "@/components/ui-lite/form-controls"
@@ -8,18 +9,7 @@ import { ConfirmDialog } from "@/components/ui-lite/confirm-dialog"
 import { Toast } from "@/components/ui-lite/toast"
 import { IngredientModal } from "@/components/dashboard/ingredient-modal"
 import { PurchaseOrderModal } from "@/components/dashboard/purchase-order-modal"
-
-// Dados de exemplo (mock). Em produção, viriam de uma requisição ao backend Java.
-// Cada ingrediente possui um "Fornecedor Padrão" e um "Contato de Emergência"
-// (canalPadrao + contatoPadrao) usados na Reposição Inteligente.
-const INITIAL_INGREDIENTS = [
-  { id: 1, nome: "Farinha de Trigo", quantidadeAtual: 45, unidadeMedida: "KG", estoqueMinimo: 20, fornecedorPadrao: "Moinhos União", canalPadrao: "WHATSAPP", contatoPadrao: "(11) 98765-1001" },
-  { id: 2, nome: "Azeite Extra Virgem", quantidadeAtual: 3, unidadeMedida: "L", estoqueMinimo: 10, fornecedorPadrao: "Importadora Oliva", canalPadrao: "EMAIL", contatoPadrao: "vendas@oliva.com" },
-  { id: 3, nome: "Tomate", quantidadeAtual: 8, unidadeMedida: "KG", estoqueMinimo: 15, fornecedorPadrao: "Hortifruti Campo Verde", canalPadrao: "WHATSAPP", contatoPadrao: "(11) 99876-2002" },
-  { id: 4, nome: "Queijo Mussarela", quantidadeAtual: 22, unidadeMedida: "KG", estoqueMinimo: 12, fornecedorPadrao: "Laticínios Serra Azul", canalPadrao: "EMAIL", contatoPadrao: "pedidos@serraazul.com" },
-  { id: 5, nome: "Ovos", quantidadeAtual: 180, unidadeMedida: "UN", estoqueMinimo: 60, fornecedorPadrao: "Granja Bom Ovo", canalPadrao: "WHATSAPP", contatoPadrao: "(11) 97654-3003" },
-  { id: 6, nome: "Leite Integral", quantidadeAtual: 5, unidadeMedida: "L", estoqueMinimo: 18, fornecedorPadrao: "Laticínios Serra Azul", canalPadrao: "EMAIL", contatoPadrao: "pedidos@serraazul.com" },
-]
+import { title } from "process"
 
 // Opções do filtro de status do estoque.
 const STATUS_FILTERS = [
@@ -29,7 +19,25 @@ const STATUS_FILTERS = [
 ]
 
 export function InventoryView() {
-  const [ingredients, setIngredients] = useState(INITIAL_INGREDIENTS)
+  const [ingredients, setIngredients] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    async function loadIngredients() {
+      try{
+        const data = await getIngredients()
+        setIngredients(data)
+      } catch (err) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadIngredients()
+  }, [])
+
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState(null)
 
@@ -47,14 +55,14 @@ export function InventoryView() {
   // Notificação toast.
   const [toast, setToast] = useState(null)
 
-  const lowStockCount = ingredients.filter((i) => i.quantidadeAtual < i.estoqueMinimo).length
+  const lowStockCount = ingredients.filter((i) => i.currentAmount < i.minimumStock).length
 
   // Lista filtrada por nome e status, em tempo real.
   const filteredIngredients = useMemo(() => {
     const term = search.trim().toLowerCase()
     return ingredients.filter((i) => {
-      const matchesText = !term || i.nome.toLowerCase().includes(term)
-      const isLow = i.quantidadeAtual < i.estoqueMinimo
+      const matchesText = !term || i.name.toLowerCase().includes(term)
+      const isLow = i.currentAmount < i.minimumStock
       const matchesStatus =
         statusFilter === "ALL" ||
         (statusFilter === "LOW" && isLow) ||
@@ -74,11 +82,17 @@ export function InventoryView() {
   }
 
   // Confirma a exclusão após o usuário aceitar no diálogo.
-  function confirmDelete() {
+  async function confirmDelete() {
     if (!toDelete) return
-    // Em produção: DELETE /api/ingredientes/{id}
-    setIngredients((prev) => prev.filter((i) => i.id !== toDelete.id))
-    setToDelete(null)
+    try{
+      await deleteIngredient(toDelete.id)
+      setIngredients((prev) => prev.filter((i) => i.id !== toDelete.id))
+    } catch (err) {
+      setToast({ id: Date.now(), variant: "danger", title: "Erro", message: err.message })
+    } finally {
+      setToDelete(null)
+    }
+
   }
 
   // Abre o modal de pedido a partir de um ingrediente (Reposição Inteligente).
@@ -100,14 +114,13 @@ export function InventoryView() {
     })
   }
 
-  function handleSubmit(payload) {
+  async function handleSubmit(payload) {
     if (payload.id) {
-      // Edição: PUT /api/ingredientes/{id}
-      setIngredients((prev) => prev.map((i) => (i.id === payload.id ? { ...i, ...payload } : i)))
+      const updated = await updateIngredient(payload.id, payload)
+      setIngredients((prev) => prev.map((i) => (i.id === updated.id ? updated : i)))
     } else {
-      // Criação: POST /api/ingredientes
-      const nextId = ingredients.length ? Math.max(...ingredients.map((i) => i.id)) + 1 : 1
-      setIngredients((prev) => [...prev, { ...payload, id: nextId }])
+      const created = await createIngredient(payload)
+      setIngredients((prev) => [...prev, created])
     }
     setModalOpen(false)
   }
@@ -174,16 +187,16 @@ export function InventoryView() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredIngredients.map((item) => {
-                const isLow = item.quantidadeAtual < item.estoqueMinimo
+                const isLow = item.currentAmount < item.minimumStock
                 return (
                   <tr key={item.id} className="transition-colors hover:bg-slate-50">
                     <td className="px-4 py-3 font-mono text-xs text-slate-400">
                       #{String(item.id).padStart(3, "0")}
                     </td>
-                    <td className="px-4 py-3 font-medium text-slate-800">{item.nome}</td>
+                    <td className="px-4 py-3 font-medium text-slate-800">{item.name}</td>
                     <td className="px-4 py-3">
                       <span className={isLow ? "font-semibold text-red-600" : "text-slate-700"}>
-                        {item.quantidadeAtual} {item.unidadeMedida}
+                        {item.currentAmount} {item.measurementUnit}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -202,7 +215,7 @@ export function InventoryView() {
                           variant={isLow ? "primary" : "outline"}
                           size="sm"
                           onClick={() => openCreateOrder(item)}
-                          aria-label={`Criar pedido de compra para ${item.nome}`}
+                          aria-label={`Criar pedido de compra para ${item.name}`}
                         >
                           <ShoppingCart className="h-4 w-4" />
                           Criar Pedido
@@ -211,7 +224,7 @@ export function InventoryView() {
                           variant="ghost"
                           size="sm"
                           onClick={() => openEdit(item)}
-                          aria-label={`Editar ${item.nome}`}
+                          aria-label={`Editar ${item.name}`}
                         >
                           <Pencil className="h-4 w-4" />
                           Editar
@@ -220,7 +233,7 @@ export function InventoryView() {
                           variant="danger"
                           size="sm"
                           onClick={() => setToDelete(item)}
-                          aria-label={`Excluir ${item.nome}`}
+                          aria-label={`Excluir ${item.name}`}
                         >
                           <Trash2 className="h-4 w-4" />
                           Excluir
@@ -279,9 +292,9 @@ export function InventoryView() {
         {toDelete ? (
           <p>
             Deseja realmente excluir o ingrediente{" "}
-            <strong className="text-slate-800">{toDelete.nome}</strong> (Quantidade:{" "}
+            <strong className="text-slate-800">{toDelete.name}</strong> (Quantidade:{" "}
             <strong className="text-slate-800">
-              {toDelete.quantidadeAtual} {toDelete.unidadeMedida}
+              {toDelete.currentAmount} {toDelete.measurementUnit}
             </strong>
             )? Esta ação não pode ser desfeita.
           </p>

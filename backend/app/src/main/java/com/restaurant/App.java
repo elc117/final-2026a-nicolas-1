@@ -66,7 +66,7 @@ public class App {
                 path("api/employees/{id}", () -> {
                     get(employeeController::getById);
                     post(employeeController::update);
-                    delete(userController::delete);
+                    delete(employeeController::delete);
                 });
                 
             });

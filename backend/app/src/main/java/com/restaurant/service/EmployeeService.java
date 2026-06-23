@@ -16,9 +16,14 @@ public class EmployeeService {
 
     public Employee registerEmployee(EmployeeDTO dto) {
         validateNewEmployee(dto);
+        User user;
 
-        char[] password = dto.user().getPassword().toCharArray();
-        User user = userService.registerUser(dto.user().toDto(), password);
+        if(dto.hasAccess()){
+            char[] password = dto.user().getPassword().toCharArray();
+            user = userService.registerUser(dto.user().toDto(), password);
+        } else {
+            user = null;
+        }
 
         dto = new EmployeeDTO(
             dto.id(),
@@ -26,6 +31,7 @@ public class EmployeeService {
             dto.surname(),
             dto.cpf(),
             dto.role(),
+            dto.hasAccess(),
             user
         );
 
@@ -47,6 +53,17 @@ public class EmployeeService {
 
     public Employee updateEmployee(EmployeeDTO dto) {
         checkValidEmployee(dto);
+
+        Employee old = employeeRepository.searchById(dto.id()).get();
+
+        if(!old.isHasAccess() && dto.hasAccess()) {
+            userService.registerUser(dto.user().toDto(), dto.user().getPassword().toCharArray());
+        }
+
+        if(old.isHasAccess() && !dto.hasAccess()) {
+            userService.deleteUser(old.getUser().getId());
+        }
+
         return employeeRepository.update(dto);
     }
 
@@ -83,7 +100,7 @@ public class EmployeeService {
     private void validateNewEmployee(EmployeeDTO dto) {
         checkValidEmployee(dto);
 
-        if(employeeRepository.searchByCpf(null).isPresent()) {
+        if(employeeRepository.searchByCpf(dto.cpf()).isPresent()) {
             throw new IllegalArgumentException("Employee with this CPF already exists");
         }
 

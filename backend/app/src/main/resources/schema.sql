@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS employees (
     surname VARCHAR(70) NOT NULL,
     cpf VARCHAR(15) NOT NULL,
     role VARCHAR(50) NOT NULL,
+    has_access BOOLEAN DEFAULT FALSE,
     user_id BIGINT UNIQUE,
 
     -- Cria chave estrangeira

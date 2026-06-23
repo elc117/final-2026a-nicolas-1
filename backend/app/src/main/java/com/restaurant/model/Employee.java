@@ -1,7 +1,6 @@
 package com.restaurant.model;
 
 import com.restaurant.dto.EmployeeDTO;
-import com.restaurant.model.enums.Role;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -13,15 +12,17 @@ public class Employee {
     private String cpf;
     private String name;
     private String surname;
-    private Role role;  
+    private String role;
+    private boolean hasAccess;  
     private User user;
 
-    public Employee(Long id, String name, String surname, String cpf, Role role, User user){
+    public Employee(Long id, String name, String surname, String cpf, String role, boolean hasAccess, User user){
         this.id = id;
         this.name = name;
         this.surname = surname;
         this.cpf = cpf;
         this.role = role;
+        this.hasAccess = hasAccess;
         this.user = user;
     }
 
@@ -31,7 +32,7 @@ public class Employee {
         this.id = null;
         this.name = "Undefined";
         this.cpf = "00000000000";
-        this.role = Role.UNDEFINED;
+        this.role = "Undefined";
         this.user = null;
     }
     
@@ -43,7 +44,10 @@ public class Employee {
             this.surname,
             this.cpf,
             this.role,
+            this.hasAccess,
             this.user
         );
     }
+
+    
 }

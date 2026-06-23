@@ -92,11 +92,14 @@ public class UserService {
     public void validateNewUser(UserDTO dto) {
         checkValidUser(dto);
 
-        userRepository.searchByLogin(dto.login())
-            .orElseThrow(() -> new IllegalArgumentException("User with input login already exists"));
+        if(userRepository.searchByLogin(dto.login()).isPresent()) {
+            throw new IllegalArgumentException("User with input login already exists");
+        }
 
         String safeHash = CryptoUtils.generateHash(dto.password().toCharArray());
-        userRepository.searchByPassword(safeHash)
-            .orElseThrow(() -> new IllegalArgumentException("User with this password already exists"));
+
+        if(userRepository.searchByPassword(safeHash).isPresent()) {
+            throw new IllegalArgumentException("User with input password already exists");
+        }
     }
 }

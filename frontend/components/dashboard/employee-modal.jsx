@@ -6,14 +6,14 @@ import { Modal } from "@/components/ui-lite/modal"
 import { Field, Input, Select, Switch, Button } from "@/components/ui-lite/form-controls"
 
 const EMPTY = {
-  nome: "",
-  sobrenome: "",
+  name: "",
+  surname: "",
   cpf: "",
-  cargo: "",
-  temAcesso: false,
+  role: "",
+  hasAccess: false,
   login: "",
-  senha: "",
-  perfilAcesso: "GARCOM",
+  password: "",
+  accessProfile: "GENERAL",
 }
 
 // Máscara simples de CPF: 000.000.000-00
@@ -41,14 +41,14 @@ export function EmployeeModal({ open, onClose, initialData, onSubmit }) {
       setForm(
         initialData
           ? {
-              nome: initialData.nome ?? "",
-              sobrenome: initialData.sobrenome ?? "",
+              name: initialData.name ?? "",
+              surname: initialData.surname ?? "",
               cpf: initialData.cpf ?? "",
-              cargo: initialData.cargo ?? "",
-              temAcesso: Boolean(initialData.login),
-              login: initialData.login ?? "",
-              senha: "",
-              perfilAcesso: initialData.perfilAcesso ?? "GARCOM",
+              role: initialData.role ?? "",
+              hasAccess: initialData.hasAccess ?? false,
+              login: initialData.user?.login ?? "",
+              password: "",
+              accessProfile: initialData.user?.accessProfile ?? "GENERAL",
             }
           : EMPTY,
       )
@@ -62,14 +62,14 @@ export function EmployeeModal({ open, onClose, initialData, onSubmit }) {
 
   function validate() {
     const next = {}
-    if (!form.nome.trim()) next.nome = "Informe o nome."
-    if (!form.sobrenome.trim()) next.sobrenome = "Informe o sobrenome."
+    if (!form.name.trim()) next.name = "Informe o nome."
+    if (!form.surname.trim()) next.surname = "Informe o sobrenome."
     if (form.cpf.replace(/\D/g, "").length !== 11) next.cpf = "CPF deve conter 11 dígitos."
-    if (!form.cargo.trim()) next.cargo = "Informe o cargo."
+    if (!form.role.trim()) next.role = "Informe o cargo."
 
-    if (form.temAcesso) {
+    if (form.hasAccess) {
       if (!form.login.trim()) next.login = "Informe o login."
-      if (!isEditing && !form.senha.trim()) next.senha = "Informe a senha."
+      if (!isEditing && !form.password.trim()) next.password = "Informe a senha."
     }
 
     setErrors(next)
@@ -83,15 +83,17 @@ export function EmployeeModal({ open, onClose, initialData, onSubmit }) {
     // Monta o objeto JSON para envio ao backend Java.
     const payload = {
       ...(isEditing ? { id: initialData.id } : {}),
-      nome: form.nome.trim(),
-      sobrenome: form.sobrenome.trim(),
+      name: form.name.trim(),
+      surname: form.surname.trim(),
       cpf: form.cpf,
-      cargo: form.cargo.trim(),
-      acesso: form.temAcesso
+      role: form.role.trim(),
+      hasAccess: form.hasAccess,
+      user: form.hasAccess
         ? {
+            ...(isEditing && initialData.user ? { id: initialData.user.id } : {}),
             login: form.login.trim(),
-            senha: form.senha,
-            perfilAcesso: form.perfilAcesso,
+            password: form.password,
+            accessProfile: form.accessProfile,
           }
         : null,
     }
@@ -125,22 +127,22 @@ export function EmployeeModal({ open, onClose, initialData, onSubmit }) {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <Field label="Nome" htmlFor="nome" required error={errors.nome}>
+            <Field label="Nome" htmlFor="nome" required error={errors.name}>
               <Input
                 id="nome"
-                value={form.nome}
-                error={errors.nome}
-                onChange={(e) => update("nome", e.target.value)}
+                value={form.name}
+                error={errors.name}
+                onChange={(e) => update("name", e.target.value)}
                 placeholder="Ex: Maria"
               />
             </Field>
 
-            <Field label="Sobrenome" htmlFor="sobrenome" required error={errors.sobrenome}>
+            <Field label="Sobrenome" htmlFor="sobrenome" required error={errors.surname}>
               <Input
                 id="sobrenome"
-                value={form.sobrenome}
-                error={errors.sobrenome}
-                onChange={(e) => update("sobrenome", e.target.value)}
+                value={form.surname}
+                error={errors.surname}
+                onChange={(e) => update("surname", e.target.value)}
                 placeholder="Ex: da Silva"
               />
             </Field>
@@ -158,12 +160,12 @@ export function EmployeeModal({ open, onClose, initialData, onSubmit }) {
               />
             </Field>
 
-            <Field label="Cargo" htmlFor="cargo" required error={errors.cargo}>
+            <Field label="Cargo" htmlFor="cargo" required error={errors.role}>
               <Input
                 id="cargo"
-                value={form.cargo}
-                error={errors.cargo}
-                onChange={(e) => update("cargo", e.target.value)}
+                value={form.role}
+                error={errors.role}
+                onChange={(e) => update("role", e.target.value)}
                 placeholder="Ex: Cozinheiro(a)"
               />
             </Field>
@@ -178,14 +180,14 @@ export function EmployeeModal({ open, onClose, initialData, onSubmit }) {
           </div>
 
           <Switch
-            id="temAcesso"
-            checked={form.temAcesso}
-            onChange={(v) => update("temAcesso", v)}
+            id="hasAccess"
+            checked={form.hasAccess}
+            onChange={(v) => update("hasAccess", v)}
             label="Liberar acesso ao sistema?"
             description="Cria credenciais de login para este funcionário."
           />
 
-          {form.temAcesso ? (
+          {form.hasAccess ? (
             <div className="flex flex-col gap-4 rounded-lg bg-slate-50 p-4">
               <div className="grid grid-cols-2 gap-4">
                 <Field label="Login" htmlFor="login" required error={errors.login}>
@@ -203,30 +205,30 @@ export function EmployeeModal({ open, onClose, initialData, onSubmit }) {
                   label="Senha"
                   htmlFor="senha"
                   required={!isEditing}
-                  error={errors.senha}
+                  error={errors.password}
                   hint={isEditing ? "Deixe em branco para manter a atual." : undefined}
                 >
                   <Input
                     id="senha"
                     type="password"
-                    value={form.senha}
-                    error={errors.senha}
-                    onChange={(e) => update("senha", e.target.value)}
+                    value={form.password}
+                    error={errors.password}
+                    onChange={(e) => update("password", e.target.value)}
                     placeholder="••••••••"
                     autoComplete="new-password"
                   />
                 </Field>
               </div>
 
-              <Field label="Perfil de acesso" htmlFor="perfilAcesso">
+                <Field label="Perfil de acesso" htmlFor="perfilAcesso">
                 <Select
-                  id="perfilAcesso"
-                  value={form.perfilAcesso}
-                  onChange={(e) => update("perfilAcesso", e.target.value)}
+                  id="accessProfile"
+                  value={form.accessProfile}
+                  onChange={(e) => update("accessProfile", e.target.value)}
                 >
                   <option value="ADMIN">Admin</option>
-                  <option value="COZINHA">Cozinha</option>
-                  <option value="GARCOM">Garçom</option>
+                  <option value="CHEF">Chefe de Cozinha</option>
+                  <option value="GENERAL">Geral</option>
                 </Select>
               </Field>
             </div>

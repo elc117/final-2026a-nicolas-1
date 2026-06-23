@@ -1,24 +1,36 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+import { createEmployee, getEmployeeById, updateEmployee, deleteEmployee, getEmployees } from "@/lib/api/employees"
 import { Plus, Pencil, Trash2, Users, Search, UserCircle } from "lucide-react"
 import { Badge } from "@/components/ui-lite/badge"
+import { Toast } from "@/components/ui-lite/toast"
 import { Button, Input, Select } from "@/components/ui-lite/form-controls"
 import { ConfirmDialog } from "@/components/ui-lite/confirm-dialog"
 import { EmployeeModal } from "@/components/dashboard/employee-modal"
 
-// Dados de exemplo (mock). Em produção viriam do backend Java.
-const INITIAL_EMPLOYEES = [
-  { id: 1, nome: "Carlos", sobrenome: "Mendes", cpf: "123.456.789-00", cargo: "Gerente", login: "carlos.mendes", perfilAcesso: "ADMIN" },
-  { id: 2, nome: "Ana", sobrenome: "Souza", cpf: "987.654.321-00", cargo: "Cozinheira", login: "ana.souza", perfilAcesso: "COZINHA" },
-  { id: 3, nome: "Pedro", sobrenome: "Lima", cpf: "456.789.123-00", cargo: "Garçom", login: null, perfilAcesso: null },
-  { id: 4, nome: "Juliana", sobrenome: "Alves", cpf: "321.654.987-00", cargo: "Auxiliar de Cozinha", login: null, perfilAcesso: null },
-]
-
-const PERFIL_LABEL = { ADMIN: "Admin", COZINHA: "Cozinha", GARCOM: "Garçom" }
+const PERFIL_LABEL = { ADMIN: "Admin", CHEF: "Chefe de cozinha", GENERAL: "Geral" }
 
 export function EmployeesView() {
-  const [employees, setEmployees] = useState(INITIAL_EMPLOYEES)
+  const [employees, setEmployees] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    async function loadEmployees() {
+      try {
+        const data = await getEmployees()
+        setEmployees(data)
+      } catch (err) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadEmployees()
+  }, [])
+
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState(null)
 
@@ -30,9 +42,12 @@ export function EmployeesView() {
   // Funcionário aguardando confirmação de exclusão.
   const [toDelete, setToDelete] = useState(null)
 
+  // Notificação toast.
+  const [toast, setToast] = useState(null)
+
   // Lista de cargos disponíveis para o filtro (derivada dos dados).
   const cargoOptions = useMemo(() => {
-    const unique = Array.from(new Set(employees.map((e) => e.cargo))).sort()
+    const unique = Array.from(new Set(employees.map((e) => e.role))).sort()
     return ["ALL", ...unique]
   }, [employees])
 
@@ -41,10 +56,10 @@ export function EmployeesView() {
     const nameTerm = searchName.trim().toLowerCase()
     const loginTerm = searchLogin.trim().toLowerCase()
     return employees.filter((e) => {
-      const fullName = `${e.nome} ${e.sobrenome}`.toLowerCase()
+      const fullName = `${e.name} ${e.surname}`.toLowerCase()
       const matchesName = !nameTerm || fullName.includes(nameTerm)
-      const matchesLogin = !loginTerm || (e.login || "").toLowerCase().includes(loginTerm)
-      const matchesCargo = cargoFilter === "ALL" || e.cargo === cargoFilter
+      const matchesLogin = !loginTerm || (e.user?.login || "").toLowerCase().includes(loginTerm)
+      const matchesCargo = cargoFilter === "ALL" || e.role === cargoFilter
       return matchesName && matchesLogin && matchesCargo
     })
   }, [employees, searchName, searchLogin, cargoFilter])
@@ -60,31 +75,40 @@ export function EmployeesView() {
   }
 
   // Confirma a exclusão após o usuário aceitar no diálogo.
-  function confirmDelete() {
+  async function confirmDelete() {
     if (!toDelete) return
-    // Em produção: DELETE /api/funcionarios/{id}
-    setEmployees((prev) => prev.filter((e) => e.id !== toDelete.id))
-    setToDelete(null)
+    try {
+      await deleteEmployee(toDelete.id)
+      setEmployees((prev) => prev.filter((i) => i.id !== toDelete.id))
+    } catch (err) {
+      setToast({ id: Date.now(), variant: "danger", title: "Erro", message: err.message })
+    } finally {
+      setToDelete(null)
+    }
   }
 
-  function handleSubmit(payload) {
+  async function handleSubmit(payload) {
     // Normaliza o objeto do acesso para a lista local.
     const normalized = {
-      nome: payload.nome,
-      sobrenome: payload.sobrenome,
+      name: payload.name,
+      surname: payload.surname,
       cpf: payload.cpf,
-      cargo: payload.cargo,
-      login: payload.acesso ? payload.acesso.login : null,
-      perfilAcesso: payload.acesso ? payload.acesso.perfilAcesso : null,
+      role: payload.role,
+      user: payload.user,
     }
 
-    if (payload.id) {
-      setEmployees((prev) => prev.map((e) => (e.id === payload.id ? { ...e, ...normalized } : e)))
-    } else {
-      const nextId = employees.length ? Math.max(...employees.map((e) => e.id)) + 1 : 1
-      setEmployees((prev) => [...prev, { id: nextId, ...normalized }])
+    try {
+      if(payload.id) {
+        const updated = await updateEmployee(payload.id, payload)
+        setEmployees((prev) => prev.map((i) => (i.id === updated.id ? updated : i)))
+      } else {
+        const created = await createEmployee(payload)
+        setEmployees((prev) => [...prev, created])
+      }
+      setModalOpen(false)
+    } catch (err) {
+      setToast({ id: Date.now(), variant: "danger", title: "Erro", message: err.message})
     }
-    setModalOpen(false)
   }
 
   return (
@@ -156,14 +180,14 @@ export function EmployeesView() {
                   <td className="px-4 py-3 font-mono text-xs text-slate-400">
                     #{String(emp.id).padStart(3, "0")}
                   </td>
-                  <td className="px-4 py-3 font-medium text-slate-800">{`${emp.nome} ${emp.sobrenome}`}</td>
+                  <td className="px-4 py-3 font-medium text-slate-800">{`${emp.name} ${emp.surname}`}</td>
                   <td className="px-4 py-3 font-mono text-xs text-slate-500">{emp.cpf}</td>
-                  <td className="px-4 py-3 text-slate-600">{emp.cargo}</td>
+                  <td className="px-4 py-3 text-slate-600">{emp.role}</td>
                   <td className="px-4 py-3">
-                    {emp.login ? (
+                    {emp.user?.login ? (
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs text-slate-700">{emp.login}</span>
-                        <Badge variant="info">{PERFIL_LABEL[emp.perfilAcesso]}</Badge>
+                        <span className="font-mono text-xs text-slate-700">{emp.user.login}</span>
+                        <Badge variant="info">{PERFIL_LABEL[emp.user.accessProfile]}</Badge>
                       </div>
                     ) : (
                       <Badge variant="neutral">Sem Acesso ao Sistema</Badge>
@@ -171,11 +195,11 @@ export function EmployeesView() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => openEdit(emp)} aria-label={`Editar ${emp.nome} ${emp.sobrenome}`}>
+                      <Button variant="ghost" size="sm" onClick={() => openEdit(emp)} aria-label={`Editar ${emp.name} ${emp.surname}`}>
                         <Pencil className="h-4 w-4" />
                         Editar
                       </Button>
-                      <Button variant="danger" size="sm" onClick={() => setToDelete(emp)} aria-label={`Excluir ${emp.nome} ${emp.sobrenome}`}>
+                      <Button variant="danger" size="sm" onClick={() => setToDelete(emp)} aria-label={`Excluir ${emp.name} ${emp.surname}`}>
                         <Trash2 className="h-4 w-4" />
                         Excluir
                       </Button>
@@ -220,9 +244,9 @@ export function EmployeesView() {
         {toDelete ? (
           <p>
             Deseja realmente excluir o funcionário{" "}
-            <strong className="text-slate-800">{`${toDelete.nome} ${toDelete.sobrenome}`}</strong> (CPF:{" "}
+            <strong className="text-slate-800">{`${toDelete.name} ${toDelete.surname}`}</strong> (CPF:{" "}
             <strong className="text-slate-800">{toDelete.cpf}</strong> | Cargo:{" "}
-            <strong className="text-slate-800">{toDelete.cargo}</strong>)? Esta ação não pode ser
+            <strong className="text-slate-800">{toDelete.role}</strong>)? Esta ação não pode ser
             desfeita.
           </p>
         ) : null}

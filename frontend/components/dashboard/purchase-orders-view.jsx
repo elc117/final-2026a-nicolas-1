@@ -23,12 +23,12 @@ import { PurchaseOrderModal } from "@/components/dashboard/purchase-order-modal"
 
 // Mesma base de ingredientes usada no estoque (mock). Em produção viria do backend.
 const INGREDIENTES = [
-  { id: 1, nome: "Farinha de Trigo", unidadeMedida: "KG", quantidadeAtual: 45, estoqueMinimo: 20 },
-  { id: 2, nome: "Azeite Extra Virgem", unidadeMedida: "L", quantidadeAtual: 3, estoqueMinimo: 10 },
-  { id: 3, nome: "Tomate", unidadeMedida: "KG", quantidadeAtual: 8, estoqueMinimo: 15 },
-  { id: 4, nome: "Queijo Mussarela", unidadeMedida: "KG", quantidadeAtual: 22, estoqueMinimo: 12 },
-  { id: 5, nome: "Ovos", unidadeMedida: "UN", quantidadeAtual: 180, estoqueMinimo: 60 },
-  { id: 6, nome: "Leite Integral", unidadeMedida: "L", quantidadeAtual: 5, estoqueMinimo: 18 },
+  { id: 1, name: "Farinha de Trigo", measurementUnit: "KG", currentAmount: 45, minimumStock: 20 },
+  { id: 2, name: "Azeite Extra Virgem", measurementUnit: "L", currentAmount: 3, minimumStock: 10 },
+  { id: 3, name: "Tomate", measurementUnit: "KG", currentAmount: 8, minimumStock: 15 },
+  { id: 4, name: "Queijo Mussarela", measurementUnit: "KG", currentAmount: 22, minimumStock: 12 },
+  { id: 5, name: "Ovos", measurementUnit: "UN", currentAmount: 180, minimumStock: 60 },
+  { id: 6, name: "Leite Integral", measurementUnit: "L", currentAmount: 5, minimumStock: 18 },
 ]
 
 /**

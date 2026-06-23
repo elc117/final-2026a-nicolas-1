@@ -9,7 +9,7 @@ public class CpfUtils {
     public static boolean isValid(String cpf) {
         if (cpf == null) return false;
 
-        if(CPF_PATTERN.matcher(cpf).matches()) {
+        if(!CPF_PATTERN.matcher(cpf).matches()) {
             return false;
         }
 

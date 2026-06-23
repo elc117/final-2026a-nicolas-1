@@ -102,3 +102,18 @@ cd backend
 ### 20/06/2026
 **11. Frontend adicionado**
 - Adicionado projeto de frontend gerado com v0
+
+**12. CRUD ingredientes conectado ao frontend**
+- Operações de adicionar/editar/remover/buscar ingredientes implementados no frontend
+	- *Funções assíncronas `fetch` definidas em `lib/api/ingredients.js`*
+- `ingredientController.java` corrigido: agora trata corretamente as entradas de id do frontend
+- Refatoração do frontend - nome de variáveis atualizado para condizer com o backend
+	- *Frontend estava com variáveis `quantidadeAtual`, `unidadeMedida`... ao invés dos nomes definido no backend `currentAmount`, `measurementUnit`...*
+
+### 23/06/2026
+**13.CRUD de funcionários conectado ao frontend**
+- Operações de adicionar/editar/remover/buscar ingredientes implementados no frontend
+	- *Funções assíncronas `fetch` definidas em `lib/api/employees.js`*
+- Classe `Employee` alterada para tratar novo atributo `hasAccess`
+	- *Atributo utilizado para checar se um funcionário cadastrado tem acesso ao sistema*
+- Validação de CPF e usuário corrigidas

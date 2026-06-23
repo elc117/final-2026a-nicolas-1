@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test;
 import com.restaurant.config.BaseIntegrationTest;
 import com.restaurant.model.Employee;
 import com.restaurant.model.User;
-import com.restaurant.model.enums.Role;
 
 public class EmployeeRepositoryIT extends BaseIntegrationTest{
     private final EmployeeRepository employeeRepository = new EmployeeRepository();
@@ -91,7 +90,7 @@ public class EmployeeRepositoryIT extends BaseIntegrationTest{
         testEmployee = employeeRepository.save(testEmployee.toDto());
 
         testEmployee.setSurname("Stroher");
-        testEmployee.setRole(Role.WAITER);
+        testEmployee.setRole("Waiter");
 
         employeeRepository.update(testEmployee.toDto());
 

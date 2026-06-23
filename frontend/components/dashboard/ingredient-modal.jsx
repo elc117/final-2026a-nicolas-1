@@ -6,10 +6,10 @@ import { Field, Input, Select, Button } from "@/components/ui-lite/form-controls
 
 // Estado inicial vazio do formulário de ingrediente.
 const EMPTY = {
-  nome: "",
-  quantidadeAtual: "",
-  unidadeMedida: "KG",
-  estoqueMinimo: "",
+  name: "",
+  currentAmount: "",
+  measurementUnit: "KG",
+  minimumStock: "",
 }
 
 /**
@@ -32,10 +32,10 @@ export function IngredientModal({ open, onClose, initialData, onSubmit }) {
       setForm(
         initialData
           ? {
-              nome: initialData.nome ?? "",
-              quantidadeAtual: String(initialData.quantidadeAtual ?? ""),
-              unidadeMedida: initialData.unidadeMedida ?? "KG",
-              estoqueMinimo: String(initialData.estoqueMinimo ?? ""),
+              name: initialData.name ?? "",
+              currentAmount: String(initialData.currentAmount ?? ""),
+              measurementUnit: initialData.measurementUnit ?? "KG",
+              minimumStock: String(initialData.minimumStock ?? ""),
             }
           : EMPTY,
       )
@@ -50,11 +50,11 @@ export function IngredientModal({ open, onClose, initialData, onSubmit }) {
   // Validações visuais simples.
   function validate() {
     const next = {}
-    if (!form.nome.trim()) next.nome = "Informe o nome do ingrediente."
-    if (form.quantidadeAtual === "" || Number(form.quantidadeAtual) < 0)
-      next.quantidadeAtual = "Quantidade inválida."
-    if (form.estoqueMinimo === "" || Number(form.estoqueMinimo) < 0)
-      next.estoqueMinimo = "Estoque mínimo inválido."
+    if (!form.name.trim()) next.name = "Informe o nome do ingrediente."
+    if (form.currentAmount === "" || Number(form.currentAmount) < 0)
+      next.currentAmount = "Quantidade inválida."
+    if (form.minimumStock === "" || Number(form.minimumStock) < 0)
+      next.minimumStock = "Estoque mínimo inválido."
     setErrors(next)
     return Object.keys(next).length === 0
   }
@@ -66,10 +66,10 @@ export function IngredientModal({ open, onClose, initialData, onSubmit }) {
     // Objeto JSON pronto para envio via fetch/axios ao backend Java.
     const payload = {
       ...(isEditing ? { id: initialData.id } : {}),
-      nome: form.nome.trim(),
-      quantidadeAtual: Number(form.quantidadeAtual),
-      unidadeMedida: form.unidadeMedida,
-      estoqueMinimo: Number(form.estoqueMinimo),
+      name: form.name.trim(),
+      currentAmount: Number(form.currentAmount),
+      measurementUnit: form.measurementUnit,
+      minimumStock: Number(form.minimumStock),
     }
 
     onSubmit(payload)
@@ -93,35 +93,35 @@ export function IngredientModal({ open, onClose, initialData, onSubmit }) {
       }
     >
       <form id="ingredient-form" onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <Field label="Nome do ingrediente" htmlFor="nome" required error={errors.nome}>
+        <Field label="Nome do ingrediente" htmlFor="name" required error={errors.name}>
           <Input
-            id="nome"
-            value={form.nome}
-            error={errors.nome}
-            onChange={(e) => update("nome", e.target.value)}
+            id="name"
+            value={form.name}
+            error={errors.name}
+            onChange={(e) => update("name", e.target.value)}
             placeholder="Ex: Farinha de Trigo"
           />
         </Field>
 
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Quantidade atual" htmlFor="quantidadeAtual" required error={errors.quantidadeAtual}>
+          <Field label="Quantidade atual" htmlFor="currentAmount" required error={errors.currentAmount}>
             <Input
-              id="quantidadeAtual"
+              id="currentAmount"
               type="number"
               step="0.01"
               min="0"
-              value={form.quantidadeAtual}
-              error={errors.quantidadeAtual}
-              onChange={(e) => update("quantidadeAtual", e.target.value)}
+              value={form.currentAmount}
+              error={errors.currentAmount}
+              onChange={(e) => update("currentAmount", e.target.value)}
               placeholder="0"
             />
           </Field>
 
-          <Field label="Unidade de medida" htmlFor="unidadeMedida">
+          <Field label="Unidade de medida" htmlFor="measurementUnit">
             <Select
-              id="unidadeMedida"
-              value={form.unidadeMedida}
-              onChange={(e) => update("unidadeMedida", e.target.value)}
+              id="measurementUnit"
+              value={form.measurementUnit}
+              onChange={(e) => update("measurementUnit", e.target.value)}
             >
               <option value="KG">KG — Quilograma</option>
               <option value="G">G — Grama</option>
@@ -134,19 +134,19 @@ export function IngredientModal({ open, onClose, initialData, onSubmit }) {
 
         <Field
           label="Estoque mínimo"
-          htmlFor="estoqueMinimo"
+          htmlFor="minimumStock"
           required
-          error={errors.estoqueMinimo}
+          error={errors.minimumStock}
           hint="Quando a quantidade ficar abaixo disso, um alerta será exibido."
         >
           <Input
-            id="estoqueMinimo"
+            id="minimumStock"
             type="number"
             step="0.01"
             min="0"
-            value={form.estoqueMinimo}
-            error={errors.estoqueMinimo}
-            onChange={(e) => update("estoqueMinimo", e.target.value)}
+            value={form.minimumStock}
+            error={errors.minimumStock}
+            onChange={(e) => update("minimumStock", e.target.value)}
             placeholder="0"
           />
         </Field>

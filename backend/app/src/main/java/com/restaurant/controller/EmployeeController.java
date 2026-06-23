@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.restaurant.dto.EmployeeDTO;
+import com.restaurant.dto.IngredientDTO;
 import com.restaurant.model.Employee;
 import com.restaurant.service.EmployeeService;
 
@@ -31,9 +32,9 @@ public class EmployeeController {
 
 
     public void getById(Context ctx) {
-        EmployeeDTO dto = ctx.bodyAsClass(EmployeeDTO.class);
+        Long id = ctx.pathParamAsClass("id", Long.class).get();
 
-        Employee employee = employeeService.getEmployeeById(dto.id());
+        Employee employee = employeeService.getEmployeeById(id);
 
         ctx.json(employee);
         ctx.status(200);
@@ -41,9 +42,20 @@ public class EmployeeController {
 
 
     public void update(Context ctx) {
-        EmployeeDTO dto = ctx.bodyAsClass(EmployeeDTO.class);
+        Long id = ctx.pathParamAsClass("id", Long.class).get();
 
-        Employee updatedEmployee = employeeService.updateEmployee(dto);
+        EmployeeDTO body = ctx.bodyAsClass(EmployeeDTO.class);
+
+        EmployeeDTO toUpdate = new EmployeeDTO(
+            id,
+            body.name(), 
+            body.surname(), 
+            body.cpf(), 
+            body.role(),
+            body.hasAccess(),
+            body.user()
+        );
+        Employee updatedEmployee = employeeService.updateEmployee(toUpdate);
 
         ctx.json(updatedEmployee);
         ctx.status(200);
@@ -51,9 +63,9 @@ public class EmployeeController {
 
 
     public void delete(Context ctx) {
-        EmployeeDTO dto = ctx.bodyAsClass(EmployeeDTO.class);
+        Long id = ctx.pathParamAsClass("id", Long.class).get();
 
-        employeeService.deleteEmployee(dto.id());
+        employeeService.deleteEmployee(id);
 
         ctx.json(Map.of());
         ctx.status(200);

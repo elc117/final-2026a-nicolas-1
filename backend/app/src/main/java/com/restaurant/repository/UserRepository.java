@@ -114,7 +114,7 @@ public class UserRepository {
         try (Connection conn = ConnectionFactory.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-                stmt.setString(2, hash);
+                stmt.setString(1, hash);
 
                 try(ResultSet rs = stmt.executeQuery()) {
                     if(rs.next()) {

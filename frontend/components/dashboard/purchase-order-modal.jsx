@@ -17,15 +17,15 @@ const EMPTY = {
 // Constrói os campos do formulário a partir de um ingrediente, aplicando o
 // "Fornecedor Padrão"/"Contato de Emergência" e a sugestão de quantidade de reposição.
 function ingredientToForm(ing) {
-  const isLow = ing.quantidadeAtual < ing.estoqueMinimo
-  const minReorder = isLow ? ing.estoqueMinimo - ing.quantidadeAtual : 0
-  const channel = ing.canalPadrao ?? "WHATSAPP"
+  const isLow = ing.currentAmount < ing.minimumStock
+  const minReorder = isLow ? ing.minimumStock - ing.currentAmount : 0
+  const channel = ing.defaultChannel ?? "WHATSAPP"
   return {
     ingredienteId: String(ing.id),
-    fornecedor: ing.fornecedorPadrao ?? "",
+    fornecedor: ing.defaultSupplier ?? "",
     messageChannel: channel,
-    telefone: channel === "WHATSAPP" ? ing.contatoPadrao ?? "" : "",
-    email: channel === "EMAIL" ? ing.contatoPadrao ?? "" : "",
+    telefone: channel === "WHATSAPP" ? ing.supplierContact ?? "" : "",
+    email: channel === "EMAIL" ? ing.supplierContact ?? "" : "",
     // Reposição inteligente: já sugere a quantidade necessária para sair do alerta.
     amount: isLow ? String(minReorder) : "",
   }
@@ -35,7 +35,7 @@ function ingredientToForm(ing) {
 function buildMessage(ingredientes, form) {
   const ing = ingredientes.find((i) => String(i.id) === String(form.ingredienteId))
   if (!ing || !form.amount) return ""
-  return `Olá, gostaríamos de pedir ${form.amount}${ing.unidadeMedida.toLowerCase()} de ${ing.nome}. Aguardamos a confirmação do pedido. Obrigado!`
+  return `Olá, gostaríamos de pedir ${form.amount}${ing.measurementUnit.toLowerCase()} de ${ing.name}. Aguardamos a confirmação do pedido. Obrigado!`
 }
 
 /**
@@ -60,7 +60,7 @@ export function PurchaseOrderModal({ open, onClose, ingredientes, onSubmit, init
     setErrors({})
 
     if (initialData) {
-      const ing = ingredientes.find((i) => i.nome === initialData.ingredientName)
+      const ing = ingredientes.find((i) => i.name === initialData.ingredientName)
       const isWhats = initialData.messageChannel === "WHATSAPP"
       setForm({
         ingredienteId: ing ? String(ing.id) : "",
@@ -96,8 +96,8 @@ export function PurchaseOrderModal({ open, onClose, ingredientes, onSubmit, init
 
   // Inteligência de estoque derivada do ingrediente selecionado.
   const selected = ingredientes.find((i) => String(i.id) === String(form.ingredienteId))
-  const isLow = selected ? selected.quantidadeAtual < selected.estoqueMinimo : false
-  const minReorder = selected && isLow ? selected.estoqueMinimo - selected.quantidadeAtual : 0
+  const isLow = selected ? selected.currentAmount < selected.minimumStock : false
+  const minReorder = selected && isLow ? selected.minimumStock - selected.currentAmount : 0
 
   function validate() {
     const next = {}
@@ -107,7 +107,7 @@ export function PurchaseOrderModal({ open, onClose, ingredientes, onSubmit, init
       next.amount = "Informe uma quantidade válida."
     } else if (isLow && Number(form.amount) < minReorder) {
       // Validação bloqueante: não permite pedir menos do que o necessário para sair do alerta.
-      next.amount = `Pedido mínimo para reposição: ${minReorder} ${selected.unidadeMedida}.`
+      next.amount = `Pedido mínimo para reposição: ${minReorder} ${selected.measurementUnit}.`
     }
     if (form.messageChannel === "WHATSAPP" && form.telefone.replace(/\D/g, "").length < 10)
       next.telefone = "Informe um telefone válido."
@@ -125,8 +125,8 @@ export function PurchaseOrderModal({ open, onClose, ingredientes, onSubmit, init
 
     // Em produção: POST /api/pedidos (criar) ou PUT /api/pedidos/{id} (editar)
     onSubmit({
-      ingredientName: ing?.nome ?? "",
-      unit: ing?.unidadeMedida ?? "",
+      ingredientName: ing?.name ?? "",
+      unit: ing?.measurementUnit ?? "",
       amount: Number(form.amount),
       messageChannel: form.messageChannel,
       supplierContact,
@@ -171,7 +171,7 @@ export function PurchaseOrderModal({ open, onClose, ingredientes, onSubmit, init
             <option value="">Selecione um ingrediente</option>
             {ingredientes.map((i) => (
               <option key={i.id} value={i.id}>
-                {i.nome} ({i.unidadeMedida})
+                {i.name} ({i.measurementUnit})
               </option>
             ))}
           </Select>
@@ -184,10 +184,10 @@ export function PurchaseOrderModal({ open, onClose, ingredientes, onSubmit, init
             <div className="text-sm">
               <p className="font-medium">Reposição necessária</p>
               <p className="text-amber-700">
-                {selected.nome} está abaixo do mínimo ({selected.quantidadeAtual}/{selected.estoqueMinimo}{" "}
-                {selected.unidadeMedida}). Pedido mínimo para reposição:{" "}
+                {selected.name} está abaixo do mínimo ({selected.currentAmount}/{selected.minimumStock}{" "}
+                {selected.measurementUnit}). Pedido mínimo para reposição: {" "}
                 <strong>
-                  {minReorder} {selected.unidadeMedida}
+                  {minReorder} {selected.measurementUnit}
                 </strong>
                 .
               </p>
@@ -216,7 +216,7 @@ export function PurchaseOrderModal({ open, onClose, ingredientes, onSubmit, init
           htmlFor="amount"
           required
           error={errors.amount}
-          hint={isLow ? `Mínimo para repor o estoque: ${minReorder} ${selected.unidadeMedida}.` : undefined}
+          hint={isLow ? `Mínimo para repor o estoque: ${minReorder} ${selected.measurementUnit}.` : undefined}
         >
           <Input
             id="amount"
