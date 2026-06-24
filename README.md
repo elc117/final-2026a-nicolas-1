@@ -1,8 +1,9 @@
 # FoodCheck - Gerenciamento de restaurantes
 
 Nícolas Atkinson Ströher - Sistemas de Informação, 3° semestre <br>
-Universidade Federal de Santa Maria, 2026
+Universidade Federal de Santa Maria, 2026<br>
 
+Link do site: https://restaurant-frontend-0dk0.onrender.com 
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/8MfjtJ-y)
 
 ## Descrição
