@@ -1,5 +1,6 @@
 package com.restaurant.config;
 
+import java.net.URI;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -33,17 +34,34 @@ public class ConnectionFactory {
             // Suporte para a variável padrão do Render (DATABASE_URL)
             String envDatabaseUrl = System.getenv("DATABASE_URL");
             if (envDatabaseUrl != null && !envDatabaseUrl.isEmpty()) {
-                // Converte postgres:// ou postgresql:// para jdbc:postgresql://
-                if (envDatabaseUrl.startsWith("postgres://")) {
-                    dbUrl = "jdbc:postgresql://" + envDatabaseUrl.substring("postgres://".length());
-                } else if (envDatabaseUrl.startsWith("postgresql://")) {
-                    dbUrl = "jdbc:postgresql://" + envDatabaseUrl.substring("postgresql://".length());
-                } else {
-                    dbUrl = envDatabaseUrl;
+                try {
+                    // Garante que a URI comece com postgresql:// para que o java.net.URI analise corretamente
+                    String uriString = envDatabaseUrl;
+                    if (envDatabaseUrl.startsWith("postgres://")) {
+                        uriString = "postgresql://" + envDatabaseUrl.substring("postgres://".length());
+                    }
+                    URI uri = new URI(uriString);
+                    
+                    String host = uri.getHost();
+                    int port = uri.getPort();
+                    String path = uri.getPath();
+                    String query = uri.getQuery();
+                    
+                    dbUrl = "jdbc:postgresql://" + host + (port != -1 ? ":" + port : "") + path;
+                    if (query != null && !query.isEmpty()) {
+                        dbUrl += "?" + query;
+                    }
+
+                    if (uri.getUserInfo() != null) {
+                        String[] userInfo = uri.getUserInfo().split(":");
+                        dbUser = userInfo[0];
+                        if (userInfo.length > 1) {
+                            dbPassword = userInfo[1];
+                        }
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException("Failed to parse DATABASE_URL: " + envDatabaseUrl, e);
                 }
-                // No caso do DATABASE_URL completo, usuário e senha já vêm embutidos na URL
-                dbUser = null;
-                dbPassword = null;
             }
 
             URL = dbUrl != null ? dbUrl : "jdbc:postgresql://localhost:5432/restaurant_db";
