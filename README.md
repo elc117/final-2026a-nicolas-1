@@ -26,6 +26,14 @@ O sistema conta com testes unitários para as classes e repositórios do aplicat
 cd backend
 ./gradlew test
 ```
+## Relacionamento das Classes
+As classes principais se relacionam de acordo com o diagrama a seguir:
+<img width="1221" height="688" alt="image" src="https://github.com/user-attachments/assets/1cb09775-814f-4034-83d8-5f263612f1e1" />
+No momento, o gerenciamento de funcionários e ingredientes/pedidos está separado, mas o plano é desenvolver o login, o que permite aos funcionários com perfil de administrador a editar ingredientes, e a funcionários da cozinha a criarem pedidos de compra que serão confirmados pelo chefe de cozinha ou pela administração.
+
+# Demonstração
+<img width="1834" height="908" alt="restaurante" src="https://github.com/user-attachments/assets/27d15691-f041-4b78-b9cc-0b8aedf8057f" />
+
 ## Histórico de Desenvolvimento
 
 ### 12/06/2026
