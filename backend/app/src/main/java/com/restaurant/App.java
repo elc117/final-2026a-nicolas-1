@@ -28,6 +28,12 @@ public class App {
 
         Javalin app = Javalin.create(config -> {
 
+            // Registra Jackson com JavaTimeModule para suportar tipos Java 8 Date/Time (como LocalDate)
+            config.jsonMapper(new io.javalin.json.JavalinJackson().updateMapper(mapper -> {
+                mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+                mapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+            }));
+
             config.bundledPlugins.enableCors(cors -> {
                 cors.addRule(it -> {
                     it.anyHost();
@@ -86,7 +92,8 @@ public class App {
             });
         });
 
-        app.start(8080);
-        System.out.println("Servidor rodando na porta 8080...");
+        int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
+        app.start(port);
+        System.out.println("Servidor rodando na porta " + port + "...");
     }
 }

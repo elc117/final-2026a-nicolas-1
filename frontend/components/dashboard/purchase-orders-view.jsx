@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   Plus,
   ShoppingCart,
@@ -20,54 +20,37 @@ import { Button, Input, Select } from "@/components/ui-lite/form-controls"
 import { Modal } from "@/components/ui-lite/modal"
 import { Toast } from "@/components/ui-lite/toast"
 import { PurchaseOrderModal } from "@/components/dashboard/purchase-order-modal"
+import { getIngredients } from "@/lib/api/ingredients"
+import { getOrders, createOrder, updateOrder } from "@/lib/api/orders"
 
-// Mesma base de ingredientes usada no estoque (mock). Em produção viria do backend.
-const INGREDIENTES = [
-  { id: 1, name: "Farinha de Trigo", measurementUnit: "KG", currentAmount: 45, minimumStock: 20 },
-  { id: 2, name: "Azeite Extra Virgem", measurementUnit: "L", currentAmount: 3, minimumStock: 10 },
-  { id: 3, name: "Tomate", measurementUnit: "KG", currentAmount: 8, minimumStock: 15 },
-  { id: 4, name: "Queijo Mussarela", measurementUnit: "KG", currentAmount: 22, minimumStock: 12 },
-  { id: 5, name: "Ovos", measurementUnit: "UN", currentAmount: 180, minimumStock: 60 },
-  { id: 6, name: "Leite Integral", measurementUnit: "L", currentAmount: 5, minimumStock: 18 },
-]
+function mapBackendToFrontend(order) {
+  return {
+    id: order.id,
+    ingredientName: order.ingredient?.name || "Ingrediente Removido",
+    amount: order.amount,
+    unit: order.ingredient?.measurementUnit || "",
+    messageChannel: order.contactChannel,
+    supplierContact: order.contact,
+    orderDate: order.date || new Date().toISOString().slice(0, 10),
+    status: order.status === "CANCELLED" ? "CANCELED" : order.status,
+    ingredienteId: order.ingredient?.id,
+    supplierName: order.supplierName || "Fornecedor",
+  }
+}
 
-/**
- * Estrutura de dados alinhada ao backend:
- * { id, ingredientName, amount, unit, messageChannel: 'WHATSAPP'|'EMAIL',
- *   supplierContact, orderDate, status: 'PENDING'|'SENT'|'CANCELED'|'COMPLETED' }
- */
-const INITIAL_ORDERS = [
-  {
-    id: 1,
-    ingredientName: "Tomate",
-    amount: 30,
-    unit: "KG",
-    messageChannel: "WHATSAPP",
-    supplierContact: "(11) 98765-4321",
-    orderDate: "2026-06-18",
-    status: "SENT",
-  },
-  {
-    id: 2,
-    ingredientName: "Azeite Extra Virgem",
-    amount: 20,
-    unit: "L",
-    messageChannel: "EMAIL",
-    supplierContact: "fornecedor@azeites.com",
-    orderDate: "2026-06-19",
-    status: "PENDING",
-  },
-  {
-    id: 3,
-    ingredientName: "Leite Integral",
-    amount: 40,
-    unit: "L",
-    messageChannel: "WHATSAPP",
-    supplierContact: "(11) 91234-5678",
-    orderDate: "2026-06-20",
-    status: "PENDING",
-  },
-]
+function mapFrontendToBackend(payload, id = null) {
+  return {
+    id: id,
+    amount: payload.amount,
+    date: payload.orderDate || new Date().toISOString().slice(0, 10),
+    status: payload.status === "CANCELED" ? "CANCELLED" : payload.status,
+    contact: payload.supplierContact,
+    contactChannel: payload.messageChannel,
+    ingredient: {
+      id: Number(payload.ingredienteId),
+    }
+  }
+}
 
 // Configuração visual de cada status.
 const STATUS_CONFIG = {
@@ -86,6 +69,7 @@ const STATUS_FILTERS = [
 ]
 
 function formatDate(iso) {
+  if (!iso) return ""
   const [y, m, d] = iso.split("-")
   return `${d}/${m}/${y}`
 }
@@ -110,7 +94,10 @@ function MetricCard({ icon: Icon, label, value, accent }) {
 }
 
 export function PurchaseOrdersView() {
-  const [orders, setOrders] = useState(INITIAL_ORDERS)
+  const [orders, setOrders] = useState([])
+  const [ingredientes, setIngredientes] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   // Modal de criação/edição.
   const [formOpen, setFormOpen] = useState(false)
@@ -125,6 +112,24 @@ export function PurchaseOrdersView() {
 
   // Notificação toast.
   const [toast, setToast] = useState(null)
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [ordersData, ingredientsData] = await Promise.all([
+          getOrders(),
+          getIngredients()
+        ])
+        setOrders(ordersData.map(mapBackendToFrontend))
+        setIngredientes(ingredientsData)
+      } catch (err) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadData()
+  }, [])
 
   const total = orders.length
   const pending = orders.filter((o) => o.status === "PENDING").length
@@ -152,60 +157,84 @@ export function PurchaseOrdersView() {
   }
 
   // Cria (PENDING) ou atualiza um pedido a partir do modal.
-  function handleFormSubmit(payload) {
-    if (editingOrder) {
-      // Em produção: PUT /api/pedidos/{id}
-      setOrders((prev) =>
-        prev.map((o) => (o.id === editingOrder.id ? { ...o, ...payload } : o)),
-      )
-      setToast({ id: Date.now(), variant: "info", title: "Pedido atualizado", message: "As alterações foram salvas." })
-    } else {
-      // Em produção: POST /api/pedidos -> nasce sempre como PENDING.
-      const nextId = orders.length ? Math.max(...orders.map((o) => o.id)) + 1 : 1
-      const novo = {
-        id: nextId,
-        ...payload,
-        orderDate: new Date().toISOString().slice(0, 10),
-        status: "PENDING",
+  async function handleFormSubmit(payload) {
+    try {
+      if (editingOrder) {
+        const backendPayload = mapFrontendToBackend({
+          ...editingOrder,
+          ...payload
+        }, editingOrder.id)
+        const updated = await updateOrder(editingOrder.id, backendPayload)
+        setOrders((prev) =>
+          prev.map((o) => (o.id === editingOrder.id ? mapBackendToFrontend(updated) : o)),
+        )
+        setToast({ id: Date.now(), variant: "info", title: "Pedido atualizado", message: "As alterações foram salvas." })
+      } else {
+        const backendPayload = mapFrontendToBackend({
+          ...payload,
+          status: "PENDING",
+          orderDate: new Date().toISOString().slice(0, 10),
+        })
+        const created = await createOrder(backendPayload)
+        setOrders((prev) => [mapBackendToFrontend(created), ...prev])
+        setToast({ id: Date.now(), variant: "info", title: "Pedido criado", message: "Cadastrado como pendente. Verifique para enviar." })
       }
-      setOrders((prev) => [novo, ...prev])
-      setToast({ id: Date.now(), variant: "info", title: "Pedido criado", message: "Cadastrado como pendente. Verifique para enviar." })
+      setFormOpen(false)
+      setEditingOrder(null)
+    } catch (err) {
+      setToast({ id: Date.now(), variant: "danger", title: "Erro ao salvar", message: err.message })
     }
-    setFormOpen(false)
-    setEditingOrder(null)
   }
 
   // Confirma o envio (PENDING -> SENT) e dispara o "envio automático".
-  function confirmSend(order) {
-    // Em produção: PATCH /api/pedidos/{id}/status { status: 'SENT' }
-    setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, status: "SENT" } : o)))
-    setVerifyOrder(null)
-    setToast({
-      id: Date.now(),
-      variant: "success",
-      title: "Pedido enviado com sucesso",
-      message: `Enviado automaticamente via ${channelLabel(order.messageChannel)} para ${order.supplierContact}.`,
-    })
+  async function confirmSend(order) {
+    try {
+      const updatedPayload = { ...order, status: "SENT" }
+      const backendPayload = mapFrontendToBackend(updatedPayload, order.id)
+      const updated = await updateOrder(order.id, backendPayload)
+      setOrders((prev) => prev.map((o) => (o.id === order.id ? mapBackendToFrontend(updated) : o)))
+      setVerifyOrder(null)
+      setToast({
+        id: Date.now(),
+        variant: "success",
+        title: "Pedido enviado com sucesso",
+        message: `Enviado automaticamente via ${channelLabel(order.messageChannel)} para ${order.supplierContact}.`,
+      })
+    } catch (err) {
+      setToast({ id: Date.now(), variant: "danger", title: "Erro ao enviar", message: err.message })
+    }
   }
 
   // Cancela o pedido (PENDING -> CANCELED).
-  function cancelOrder(order) {
-    // Em produção: PATCH /api/pedidos/{id}/status { status: 'CANCELED' }
-    setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, status: "CANCELED" } : o)))
-    setVerifyOrder(null)
-    setToast({ id: Date.now(), variant: "error", title: "Pedido cancelado", message: "O pedido não será enviado ao fornecedor." })
+  async function cancelOrder(order) {
+    try {
+      const updatedPayload = { ...order, status: "CANCELED" }
+      const backendPayload = mapFrontendToBackend(updatedPayload, order.id)
+      const updated = await updateOrder(order.id, backendPayload)
+      setOrders((prev) => prev.map((o) => (o.id === order.id ? mapBackendToFrontend(updated) : o)))
+      setVerifyOrder(null)
+      setToast({ id: Date.now(), variant: "error", title: "Pedido cancelado", message: "O pedido não será enviado ao fornecedor." })
+    } catch (err) {
+      setToast({ id: Date.now(), variant: "danger", title: "Erro ao cancelar", message: err.message })
+    }
   }
 
   // Confirma o recebimento (SENT -> COMPLETED).
-  function confirmReceipt(order) {
-    // Em produção: PATCH /api/pedidos/{id}/status { status: 'COMPLETED' }
-    setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, status: "COMPLETED" } : o)))
-    setToast({
-      id: Date.now(),
-      variant: "success",
-      title: "Recebimento confirmado",
-      message: `${order.ingredientName} foi adicionado ao estoque.`,
-    })
+  async function confirmReceipt(order) {
+    try {
+      const updatedPayload = { ...order, status: "COMPLETED" }
+      const backendPayload = mapFrontendToBackend(updatedPayload, order.id)
+      const updated = await updateOrder(order.id, backendPayload)
+      setOrders((prev) => prev.map((o) => (o.id === order.id ? mapBackendToFrontend(updated) : o)))
+      setToast({
+        id: Date.now(),
+        variant: "success",
+        title: "Recebimento confirmado",
+        message: `${order.ingredientName} foi adicionado ao estoque.`,
+      })
+    } catch (err) {
+      setToast({ id: Date.now(), variant: "danger", title: "Erro ao confirmar recebimento", message: err.message })
+    }
   }
 
   return (
@@ -383,7 +412,7 @@ export function PurchaseOrdersView() {
           setFormOpen(false)
           setEditingOrder(null)
         }}
-        ingredientes={INGREDIENTES}
+        ingredientes={ingredientes}
         onSubmit={handleFormSubmit}
         initialData={editingOrder}
       />

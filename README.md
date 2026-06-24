@@ -8,20 +8,19 @@ Universidade Federal de Santa Maria, 2026
 ## Descrição
 FoodCheck é um projeto individual, iniciado como trabalho final da cadeira de Paradigmas de Programação, que tem como objetivo desenvolver um sistema integrado para fácil gerenciamento de restaurantes. A ideia do projeto foi inspirada por familiares presentes na área de público alvo, e pela vontade de aprofundar os conhecimentos em orientação a objetos e banco de dados. 
 ## Especificação
-> OBS: O backend ainda está sendo integrado ao frontend; enquanto isso não finaliza, as funcionalidades abaixo existem no backend, mas estão indisponíveis para uso oficial. Para verificar o funcionamento, utilize os testes como apresentado abaixo.
 
 O aplicativo possui um backend Java gerenciado com Gradle, em comunicação com um frontend gerado pela Vercel v0 através de uma camada de requisições baseada na biblioteca Javalin. O sistema, até agora, conta com algumas funcionalidades básicas:
 
 - Gerenciamento de estoque de ingredientes (manual);
--  Gerenciamento de cadastro de funcionários (pelo administrador);
+- Gerenciamento de cadastro de funcionários (pelo administrador);
 - Autenticação de login de usuário (implementado no backend, mas indisponível no front);
 - Identificação de cargos e nível hierárquico para controle de acesso e funcionalidades.
+- Gerenciamento de pedidos de compra de ingredientes
 
 
-> PRÓXIMOS PASSOS - contabilização de consumo de ingredientes
+> PRÓXIMOS PASSOS - login efetivo / automatização de pedidos de compra
 
-
-Por enquanto, a interface e funcionamento do aplicativo está limitada ao uso por um administrador da empresa, que pode gerenciar funcionários e o estoque de ingredientes.
+Por enquanto, a interface e funcionamento do aplicativo está limitada ao uso por um administrador da empresa, que pode gerenciar funcionários, o estoque de ingredientes e os pedidos de compra.
 O sistema conta com testes unitários para as classes e repositórios do aplicativo, localizados em `src/test/`. Para executar os testes e verificar a integridade das classes e do banco de dados, basta acessar o backend e executar os testes com o Gradle:
 ```
 cd backend
@@ -123,3 +122,16 @@ cd backend
 - Camadas de repositório, serviço e controle para `model`
 	- `repository/OrderRepository.java, service/OrderService.java, controller/OrderController.java`
 - DTO `OrderDTO.java` para comunicação de objetos `Order` com o banco de dados
+
+
+**15. CRUD de pedidos conectado ao frontend**
+- Operações de CRUD da classe `Order.java` implementados no frontend
+	- *Funções assíncronas `fetch` definidas em `/lib/api/orders.js`*
+- Adicionada validação para atualizar estoque de ingrediente ao concluir pedido de compra
+
+## Comentários e experiência
+Como esse é meu primeiro projeto na linguagem Java e com o paradigma de orientação a objetos, descobri várias funcionalidades diferentes com a qual não estava acostumado.
+Enquanto o código no geral não faz uso de elementos mais especializados da orientação a objetos e do Java, como herança, interfaces e etc., ao escrever o código para os testes me deparei com 2 elementos muito falados na orientação a objetos: a *classe abstrata* (herança) e a chamada *God Class*. <br><br>
+Nos testes de integração do projeto, que testam o funcionamento dos repositórios e a conexão com o banco de dados, adotei a boa prática de iniciar o banco de dados vazio, realizar os testes, verificar (executar os *asserts*), e então limpar o banco de dados. No entanto, percebi que eu tinha a mesma função `clearDB()` em todos os arquivos, e quis modularizar. Com um pouco de pesquisa, decidi utilizar uma *classe abstrata* `BaseIntegrationTest.java`, em que defini a inicialização do banco de dados e todo esse processo. Assim, os testes de integração herdam dessa classe (com a palavra chave `extends`). O funcionamento fica o mesmo, mas o código fica mais limpo. <br><br>
+Após isso, gostei do código mais limpo, e percebi que em todos os testes eu criava objetos de teste diretamente no teste de integração (como, por exemplo, instanciar um funcionário de forma *hardcoded* no próprio arquivo). Então, decidi modularizar isso também, e criei funções para criar objetos de teste, e coloquei na mesma classe abstrata `BaseIntegrationTest.java`. Então, eu precisava de funções de *assert* customizadas para avaliar os meus objetos de teste com os retornos do banco de dados: adicionei mais essas funções na classe abstrata. <br><br>
+Um pouco depois, percebi que eu poderia utilizar essas funções de criação de objetos teste para os testes de classe e de outras partes do sistema também, mas me deparei com um problema: para testar as classes, eu não preciso acessar o banco de dados, mas isso está padronizado na classe abstrata. Diante disso, lembrei do termo *God Class* e pesquisei mais afundo, descobrindo na prática como a aglomeração de muitas responsabilidades em uma classe só pode ser prejudicial.

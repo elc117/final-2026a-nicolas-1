@@ -125,6 +125,7 @@ export function PurchaseOrderModal({ open, onClose, ingredientes, onSubmit, init
 
     // Em produção: POST /api/pedidos (criar) ou PUT /api/pedidos/{id} (editar)
     onSubmit({
+      ingredienteId: form.ingredienteId,
       ingredientName: ing?.name ?? "",
       unit: ing?.measurementUnit ?? "",
       amount: Number(form.amount),

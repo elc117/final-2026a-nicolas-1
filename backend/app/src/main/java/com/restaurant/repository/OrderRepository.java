@@ -158,7 +158,7 @@ public class OrderRepository {
             rs.getLong("order_id"),
             ingredient,
             rs.getDouble("amount"),
-            (LocalDate) rs.getObject("date"),
+            rs.getObject("date", LocalDate.class),
             OrderStatus.valueOf(rs.getString("status")),
             rs.getString("contact"),
             CommChannel.valueOf(rs.getString("contact_channel"))

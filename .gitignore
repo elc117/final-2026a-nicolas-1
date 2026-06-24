@@ -28,6 +28,7 @@ __v0_jsx-dev-runtime.ts
 .vercel/
 
 # Ignore environment variables
+.env
 .env*.local
 
 # Ignore local logs
@@ -35,10 +36,16 @@ __v0_jsx-dev-runtime.ts
 hs_err_pid*
 replay_pid*
 
-# Ignore Gradle configuration cache
+# Ignore Gradle configuration cache and properties
 **/configuration-cache/
+local.properties
 
 # Common ignores
 node_modules
 .next/
 .DS_Store
+Thumbs.db
+dist/
+coverage/
+.eslintcache
+

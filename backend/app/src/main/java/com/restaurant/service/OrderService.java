@@ -3,18 +3,20 @@ package com.restaurant.service;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import com.restaurant.dto.IngredientDTO;
 import com.restaurant.dto.OrderDTO;
 import com.restaurant.model.Ingredient;
 import com.restaurant.model.Order;
+import com.restaurant.model.enums.OrderStatus;
 import com.restaurant.repository.OrderRepository;
 
 public class OrderService {
-    private static final IngredientService IngredientService = new IngredientService();
+    private static final IngredientService ingredientService = new IngredientService();
     private static final OrderRepository orderRepository = new OrderRepository();
 
     public Order registerOrder(OrderDTO dto) {
         checkValidOrder(dto);
-        Ingredient ingredient = IngredientService.getIngredientById(dto.ingredient().getId());
+        Ingredient ingredient = ingredientService.getIngredientById(dto.ingredient().getId());
         
         dto = new OrderDTO(
             dto.id(),
@@ -44,6 +46,20 @@ public class OrderService {
 
     public Order updateOrder(OrderDTO dto) {
         checkValidOrder(dto);
+
+        if(dto.status() == OrderStatus.COMPLETED) {
+            IngredientDTO ingDto = ingredientService.getIngredientById(dto.ingredient().getId()).toDto();
+            IngredientDTO newIngredient = new IngredientDTO(
+                ingDto.id(),
+                ingDto.name(),
+                ingDto.measurementUnit(),
+                ingDto.currentAmount() + dto.amount(),
+                ingDto.minimumStock()
+            );
+
+            ingredientService.updateIngredient(newIngredient);
+        }
+
         return orderRepository.update(dto);
     }
 

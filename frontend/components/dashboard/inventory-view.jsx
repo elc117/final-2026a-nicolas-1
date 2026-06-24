@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { createIngredient, getIngredients, getIngredientById, updateIngredient, deleteIngredient} from "@/lib/api/ingredients"
+import { createOrder } from "@/lib/api/orders"
 import { Plus, Pencil, Trash2, AlertTriangle, Package, Search, ShoppingCart } from "lucide-react"
 import { Badge } from "@/components/ui-lite/badge"
 import { Button, Input, Select } from "@/components/ui-lite/form-controls"
@@ -102,16 +103,35 @@ export function InventoryView() {
   }
 
   // Recebe o pedido criado a partir do estoque.
-  // Em produção: POST /api/pedidos -> nasce sempre como PENDING.
-  function handleOrderSubmit(payload) {
-    setOrderModalOpen(false)
-    setPrefillIngredient(null)
-    setToast({
-      id: Date.now(),
-      variant: "success",
-      title: "Pedido criado",
-      message: `Pedido de ${payload.amount} ${payload.unit} de ${payload.ingredientName} criado como pendente.`,
-    })
+  async function handleOrderSubmit(payload) {
+    try {
+      const backendPayload = {
+        amount: payload.amount,
+        date: new Date().toISOString().slice(0, 10),
+        status: "PENDING",
+        contact: payload.supplierContact,
+        contactChannel: payload.messageChannel,
+        ingredient: {
+          id: Number(payload.ingredienteId),
+        }
+      }
+      await createOrder(backendPayload)
+      setOrderModalOpen(false)
+      setPrefillIngredient(null)
+      setToast({
+        id: Date.now(),
+        variant: "success",
+        title: "Pedido criado",
+        message: `Pedido de ${payload.amount} ${payload.unit} de ${payload.ingredientName} criado como pendente.`,
+      })
+    } catch (err) {
+      setToast({
+        id: Date.now(),
+        variant: "danger",
+        title: "Erro ao criar pedido",
+        message: err.message,
+      })
+    }
   }
 
   async function handleSubmit(payload) {
